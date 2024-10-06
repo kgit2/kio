@@ -1,0 +1,16 @@
+[package]
+name = "rio"
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+license.workspace = true
+homepage.workspace = true
+
+[lib]
+name = "rio"
+crate-type = ["rlib", "staticlib"]
+
+[dependencies]
+
+[build-dependencies]
+cbindgen = "0.26.0"
