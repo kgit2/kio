@@ -1,5 +1,5 @@
 #[macro_export]
-macro_rules! type_wrapper {
+macro_rules! typed_result {
     (
         Include {
             $(
@@ -12,20 +12,12 @@ macro_rules! type_wrapper {
             )*
         }
     ) => {
-        impl TypeWrapper {
-            pub fn from_error<T>(error: T) -> Self
-            where
-                T: core::error::Error + 'static,
-            {
-                TypeWrapper::Error(Box::into_raw(Box::new(error)) as *const std::ffi::c_void)
-            }
-        }
-
-        impl TypeWrapper {
+        impl RioResult {
             $(
-                pub fn $e(self) -> $t {
+                #[no_mangle]
+                pub extern "C" fn $e(self) -> $t {
                     match self {
-                        TypeWrapper::$v(value) => value,
+                        RioResult::$v(value) => value,
                         _ => panic!("TypeWrapper is not a {}", stringify!($v)),
                     }
                 }
@@ -33,9 +25,9 @@ macro_rules! type_wrapper {
         }
 
         $(
-            impl From<$t> for TypeWrapper {
+            impl From<$t> for RioResult {
                 fn from(value: $t) -> Self {
-                    TypeWrapper::$v(value)
+                    RioResult::$v(value)
                 }
             }
         )*

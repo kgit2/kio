@@ -6,3 +6,4 @@ clean:
     rm -rf library/build
     rm -rf convention-plugins/build
     rm -rf .gradle
+    rm -rf .kotlin

@@ -10,3 +10,7 @@ edition = "2021"
 authors = ["BppleMan"]
 license = "Apache-2.0"
 homepage = "https://github.com/kgit2/kio"
+
+[workspace.dependencies]
+color-eyre = "0.6.3"
+thiserror = "1.0.64"

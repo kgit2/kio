@@ -1,0 +1,5 @@
+headers = rio.h
+staticLibraries = librio.a
+compilerOpts = -I../rio
+linkerOpts = -Wl -static -lws2_32 -lbcrypt -luserenv -lntdll -lstdc++ -v
+libraryPaths = ../rio/target/x86_64-pc-windows-gnu/release

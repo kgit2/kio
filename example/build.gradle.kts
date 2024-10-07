@@ -2,7 +2,6 @@ import org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi
 
 plugins {
     alias(libs.plugins.kotlinMultiplatform)
-    // alias(libs.plugins.androidLibrary)
     id("module.publication")
 }
 
@@ -10,41 +9,45 @@ group = "com.kgit2"
 version = "0.0.1"
 
 kotlin {
-    jvm()
-    // androidTarget {
-    //     publishLibraryVariants("release")
-    //     @OptIn(ExperimentalKotlinGradlePluginApi::class)
-    //     compilerOptions {
-    //         jvmTarget.set(JvmTarget.JVM_1_8)
-    //     }
-    // }
-    // iosX64()
-    // iosArm64()
-    // iosSimulatorArm64()
-    // linuxX64()
+    val os = System.getProperty("os.name").lowercase()
+    val arch = System.getProperty("os.arch").lowercase()
+    var platform = Platform.MACOS_X64
+    val nativeTarget = when {
+        os.contains("mac") -> if (arch.contains("arm")) {
+            platform = Platform.MACOS_ARM64
+            macosArm64("native")
+        } else {
+            platform = Platform.MACOS_X64
+            macosX64("native")
+        }
+        os.contains("linux") -> if (arch.contains("arm")) {
+            platform = Platform.LINUX_ARM64
+            linuxArm64("native")
+        } else {
+            platform = Platform.LINUX_X64
+            linuxX64("native")
+        }
+        os.contains("windows") -> {
+            platform = Platform.MINGW_X64
+            mingwX64("native")
+        }
+        else -> error("Unsupported OS: $os")
+    }
 
-    val nativeTargets = listOf(
-        macosX64() to Platform.MACOS_X64,
-        macosArm64() to Platform.MACOS_ARM64,
-        linuxX64() to Platform.LINUX_X64,
-        linuxArm64() to Platform.LINUX_ARM64,
-        mingwX64() to Platform.MINGW_X64,
-    )
-
-    nativeTargets.forEach { (nativeTarget, targetPlatform) ->
-        nativeTarget.apply {
-            compilations.getByName("main") {
-                cinterops {
-                    create("rio") {
-                        defFile(project.file("src/nativeInterop/cinterop/${targetPlatform.archName}.def"))
-                        packageName("rio")
-                    }
+    nativeTarget.apply {
+        compilations.getByName("main") {
+            cinterops {
+                create("rio") {
+                    defFile(project.file("../nativeInterop/cinterop/${platform.archName}.def"))
+                    packageName("rio")
                 }
             }
         }
-    }
 
-    applyDefaultHierarchyTemplate()
+        binaries {
+            executable()
+        }
+    }
 
     sourceSets {
         // add opt-in
@@ -66,7 +69,7 @@ kotlin {
         val commonMain by getting {
             dependencies {
                 //put your multiplatform dependencies here
-                implementation("org.jetbrains.kotlinx:atomicfu:0.23.1")
+                implementation(project(":library"))
             }
         }
         val commonTest by getting {
@@ -74,16 +77,12 @@ kotlin {
                 implementation(libs.kotlin.test)
             }
         }
+
+        val nativeMain by getting {
+            dependencies {  }
+        }
     }
 }
-
-// android {
-//     namespace = "org.jetbrains.kotlinx.multiplatform.library.template"
-//     compileSdk = libs.versions.android.compileSdk.get().toInt()
-//     defaultConfig {
-//         minSdk = libs.versions.android.minSdk.get().toInt()
-//     }
-// }
 
 enum class Platform(
     val archName: String

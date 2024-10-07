@@ -1,0 +1,4 @@
+headers = rio.h
+staticLibraries = librio.a
+compilerOpts = -I../rio
+libraryPaths = ../rio/target/x86_64-unknown-linux-gnu/release

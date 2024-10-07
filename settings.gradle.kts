@@ -16,3 +16,4 @@ dependencyResolutionManagement {
 
 rootProject.name = "kio"
 include(":library")
+include(":example")

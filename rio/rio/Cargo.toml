@@ -11,6 +11,8 @@ name = "rio"
 crate-type = ["rlib", "staticlib"]
 
 [dependencies]
+color-eyre = { workspace = true }
+thiserror = { workspace = true }
 
 [build-dependencies]
-cbindgen = "0.26.0"
+cbindgen = "0.27.0"
