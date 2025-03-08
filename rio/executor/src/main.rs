@@ -1,7 +1,7 @@
-use rio::ffi::ffi_convertor::ffi_byte_array::FFIByteArray;
-use rio::ffi::ffi_convertor::FFIConvertor;
-use rio::ffi::ffi_result::FFIResult;
-use rio::ffi::ffi_value::FFIValue;
+use ffk::ffi_convertor::ffi_byte_array::FFIByteArray;
+use ffk::ffi_convertor::FFIConvertor;
+use ffk::ffi_result::FFIResult;
+use ffk::ffi_value::FFIValue;
 use rio::io::stdin::{stdin_init, stdin_read};
 
 fn main() {

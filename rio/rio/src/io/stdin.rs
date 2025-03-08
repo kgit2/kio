@@ -1,8 +1,8 @@
-use crate::ffi::ffi_convertor::ffi_byte_array::FFIByteArray;
-use crate::ffi::ffi_convertor::FFIConvertor;
-use crate::ffi::ffi_result::FFIResult;
-use crate::ffi::ffi_value::FFIValue;
-use crate::io::mut_borrow_from_ptr;
+use crate::io::{from_io_result, mut_borrow_from_ptr};
+use ffk::ffi_convertor::ffi_byte_array::FFIByteArray;
+use ffk::ffi_convertor::FFIConvertor;
+use ffk::ffi_result::FFIResult;
+use ffk::ffi_value::FFIValue;
 use std::io::Read;
 
 #[no_mangle]
@@ -18,14 +18,14 @@ pub extern "C" fn stdin_read(
 ) -> FFIResult {
     let stdin = mut_borrow_from_ptr::<std::io::Stdin>(stdin_ptr);
     let buf = unsafe { std::slice::from_raw_parts_mut(array_buffer.buffer, array_buffer.len) };
-    FFIResult::from_io_result(stdin.read(buf), FFIValue::from)
+    from_io_result(stdin.read(buf), FFIValue::from)
 }
 
 #[no_mangle]
 pub extern "C" fn stdin_read_to_end(stdin_ptr: *mut std::ffi::c_void) -> FFIResult {
     let stdin = mut_borrow_from_ptr::<std::io::Stdin>(stdin_ptr);
     let mut buf = Vec::<u8>::new();
-    FFIResult::from_io_result(stdin.read_to_end(&mut buf), |_size| buf.into_ffi().into())
+    from_io_result(stdin.read_to_end(&mut buf), |_size| buf.into_ffi().into())
 }
 
 #[no_mangle]

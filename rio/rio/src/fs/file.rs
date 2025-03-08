@@ -1,6 +1,6 @@
-use crate::ffi::ffi_convertor::FFIConvertor;
-use crate::ffi::ffi_result::FFIResult;
-use crate::ffi::ffi_value::FFIValue;
+use ffk::ffi_convertor::FFIConvertor;
+use ffk::ffi_result::FFIResult;
+use ffk::ffi_value::FFIValue;
 
 pub fn return_file_ffi_result(file: Result<std::fs::File, std::io::Error>) -> FFIResult {
     match file {

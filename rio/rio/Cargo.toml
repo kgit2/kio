@@ -11,6 +11,7 @@ name = "rio"
 crate-type = ["rlib", "staticlib"]
 
 [dependencies]
+ffk.workspace = true
 
 [build-dependencies]
 cbindgen = "0.26.0"
