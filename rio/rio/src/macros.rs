@@ -1,5 +1,5 @@
 #[macro_export]
-macro_rules! type_wrapper {
+macro_rules! ffi_value {
     (
         Include {
             $(
@@ -12,21 +12,21 @@ macro_rules! type_wrapper {
             )*
         }
     ) => {
-        impl TypeWrapper {
+        impl FFIValue {
             $(
                 pub fn $e(self) -> $t {
                     match self {
-                        TypeWrapper::$v(value) => value,
-                        _ => panic!("TypeWrapper is not a {}", stringify!($v)),
+                        FFIValue::$v(value) => value,
+                        _ => panic!("FFIValue is not a {}", stringify!($v)),
                     }
                 }
             )*
         }
 
         $(
-            impl From<$t> for TypeWrapper {
+            impl From<$t> for FFIValue {
                 fn from(value: $t) -> Self {
-                    TypeWrapper::$v(value)
+                    FFIValue::$v(value)
                 }
             }
         )*

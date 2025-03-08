@@ -27,9 +27,10 @@ actual object Stdin : Read {
         }
 
         // 获取 ByteArray 指针
-        val arrayBuffer = cValue<ArrayBuffer> {
+        val arrayBuffer = cValue<FFIByteArray> {
             buffer = buf.asUByteArray().refTo(0).getPointer(this@memScoped)
             this.len = len.toULong()
+            this.capacity = buf.size.toULong()
         }
 
         // 调用 Rust FFI 方法
@@ -65,9 +66,10 @@ actual object Stdin : Read {
                             buf.add(it)
                         }
                     }
-                    val arrayBuffer = cValue<ArrayBuffer> {
-                        len = ok.array.len
+                    val arrayBuffer = cValue<FFIByteArray> {
                         buffer = ok.array.buffer
+                        len = ok.array.len
+                        capacity = ok.array.capacity
                     }
                     free_array_buffer(arrayBuffer)
 

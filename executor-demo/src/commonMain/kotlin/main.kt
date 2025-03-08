@@ -9,6 +9,6 @@ fun main() {
             .map {
                 println("Wrote $it bytes")
             }
-        Stdout.flush().getOrThrow()
+//        Stdout.flush().getOrThrow()
     }
 }

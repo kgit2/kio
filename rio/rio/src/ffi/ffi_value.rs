@@ -1,8 +1,8 @@
-use crate::byte_array::ArrayBuffer;
-use crate::type_wrapper;
+use crate::ffi::ffi_convertor::ffi_byte_array::FFIByteArray;
+use crate::ffi_value;
 
 #[repr(C)]
-pub enum TypeWrapper {
+pub enum FFIValue {
     Int8(i8),
     UInt8(u8),
     Short(i16),
@@ -17,12 +17,12 @@ pub enum TypeWrapper {
     Double(f64),
     Boolean(bool),
     String(*mut std::ffi::c_char),
-    Array(ArrayBuffer),
+    Array(FFIByteArray),
     COpaquePointer(*mut std::ffi::c_void),
     Unit,
 }
 
-type_wrapper! {
+ffi_value! {
     Include {
         Int8(i8, to_i8),
         UInt8(u8, to_u8),
@@ -46,14 +46,14 @@ type_wrapper! {
     }
 }
 
-impl From<*mut std::ffi::c_char> for TypeWrapper {
+impl From<*mut std::ffi::c_char> for FFIValue {
     fn from(value: *mut std::ffi::c_char) -> Self {
-        TypeWrapper::String(value)
+        FFIValue::String(value)
     }
 }
 
-impl From<ArrayBuffer> for TypeWrapper {
-    fn from(value: ArrayBuffer) -> Self {
-        TypeWrapper::Array(value)
+impl From<FFIByteArray> for FFIValue {
+    fn from(value: FFIByteArray) -> Self {
+        FFIValue::Array(value)
     }
 }

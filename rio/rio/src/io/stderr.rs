@@ -1,52 +1,43 @@
-use crate::byte_array::ArrayBuffer;
-use crate::ffi::FFITransform;
-use crate::ffi_result::FFIResult;
-use crate::type_wrapper::TypeWrapper;
+use crate::ffi::ffi_convertor::ffi_byte_array::FFIByteArray;
+use crate::ffi::ffi_result::FFIResult;
+use crate::ffi::ffi_value::FFIValue;
+use crate::io::mut_borrow_from_ptr;
 use std::io::Write;
 
 #[no_mangle]
 pub extern "C" fn stderr_init() -> FFIResult {
     let stderr_ptr = Box::into_raw(Box::new(std::io::stderr())) as *mut std::ffi::c_void;
-    FFIResult::Ok(TypeWrapper::COpaquePointer(stderr_ptr))
+    FFIResult::Ok(FFIValue::COpaquePointer(stderr_ptr))
 }
 
 #[no_mangle]
-pub unsafe extern "C" fn stderr_write(
+pub extern "C" fn stderr_write(
     stderr_ptr: *mut std::ffi::c_void,
-    array_buffer: ArrayBuffer,
+    array_buffer: FFIByteArray,
 ) -> FFIResult {
-    let stderr = &mut *(stderr_ptr as *mut std::io::Stderr);
-    let buf = std::slice::from_raw_parts(array_buffer.buffer, array_buffer.len);
-    match stderr.write(buf) {
-        Ok(size) => FFIResult::Ok(size.into()),
-        Err(error) => FFIResult::Err(error.to_string().into_ffi().into()),
-    }
+    let stderr = mut_borrow_from_ptr::<std::io::Stderr>(stderr_ptr);
+    let buf = unsafe { std::slice::from_raw_parts(array_buffer.buffer, array_buffer.len) };
+    FFIResult::from_io_result(stderr.write(buf), FFIValue::from)
 }
 
 #[no_mangle]
-pub unsafe extern "C" fn stderr_write_all(
+pub extern "C" fn stderr_write_all(
     stderr_ptr: *mut std::ffi::c_void,
-    array_buffer: ArrayBuffer,
+    array_buffer: FFIByteArray,
 ) -> FFIResult {
-    let stderr = &mut *(stderr_ptr as *mut std::io::Stderr);
-    let buf = std::slice::from_raw_parts(array_buffer.buffer, array_buffer.len);
-    match stderr.write_all(buf) {
-        Ok(_) => FFIResult::Ok(TypeWrapper::Unit),
-        Err(error) => FFIResult::Err(error.to_string().into_ffi().into()),
-    }
+    let stderr = mut_borrow_from_ptr::<std::io::Stderr>(stderr_ptr);
+    let buf = unsafe { std::slice::from_raw_parts(array_buffer.buffer, array_buffer.len) };
+    FFIResult::from_io_result(stderr.write_all(buf), |_| FFIValue::Unit)
 }
 
 #[no_mangle]
-pub unsafe extern "C" fn stderr_flush(stderr_ptr: *mut std::ffi::c_void) -> FFIResult {
-    let stderr = &mut *(stderr_ptr as *mut std::io::Stderr);
-    match stderr.flush() {
-        Ok(_) => FFIResult::Ok(TypeWrapper::Unit),
-        Err(error) => FFIResult::Err(error.to_string().into_ffi().into()),
-    }
+pub extern "C" fn stderr_flush(stderr_ptr: *mut std::ffi::c_void) -> FFIResult {
+    let stderr = mut_borrow_from_ptr::<std::io::Stderr>(stderr_ptr);
+    FFIResult::from_io_result(stderr.flush(), |_| FFIValue::Unit)
 }
 
 #[no_mangle]
-pub unsafe extern "C" fn free_stderr(stderr_ptr: *mut std::ffi::c_void) {
+pub extern "C" fn free_stderr(stderr_ptr: *mut std::ffi::c_void) {
     unsafe {
         drop(Box::from_raw(stderr_ptr as *mut std::io::Stderr));
     }

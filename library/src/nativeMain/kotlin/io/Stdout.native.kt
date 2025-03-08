@@ -24,9 +24,10 @@ actual object Stdout : Write {
             return Result.failure(Exception("buf size is less than len"))
         }
 
-        val arrayBuffer = cValue<ArrayBuffer> {
+        val arrayBuffer = cValue<FFIByteArray> {
             buffer = buf.asUByteArray().refTo(0).getPointer(this@memScoped)
             this.len = len.toULong()
+            capacity = buf.size.toULong()
         }
 
         stdout_write(internalPtr.value, arrayBuffer).useContents {
@@ -47,9 +48,10 @@ actual object Stdout : Write {
             return Result.success(Unit)
         }
 
-        val arrayBuffer = cValue<ArrayBuffer> {
+        val arrayBuffer = cValue<FFIByteArray> {
             buffer = buf.asUByteArray().refTo(0).getPointer(this@memScoped)
             len = buf.size.toULong()
+            capacity = buf.size.toULong()
         }
 
         return stdout_write_all(internalPtr.value, arrayBuffer).useContents {
