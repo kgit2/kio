@@ -13,15 +13,6 @@ macro_rules! type_wrapper {
         }
     ) => {
         impl TypeWrapper {
-            pub fn from_error<T>(error: T) -> Self
-            where
-                T: core::error::Error + 'static,
-            {
-                TypeWrapper::Error(Box::into_raw(Box::new(error)) as *const std::ffi::c_void)
-            }
-        }
-
-        impl TypeWrapper {
             $(
                 pub fn $e(self) -> $t {
                     match self {

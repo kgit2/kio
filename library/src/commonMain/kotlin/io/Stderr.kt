@@ -1,4 +1,4 @@
 package io
 
-object Stderr {
+expect object Stderr : Write {
 }

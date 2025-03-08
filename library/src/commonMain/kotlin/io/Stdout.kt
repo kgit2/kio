@@ -1,4 +1,4 @@
 package io
 
-class Stdout {
+expect object Stdout : Write {
 }

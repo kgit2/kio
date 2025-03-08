@@ -1,1 +1,4 @@
-package io 
+package io
+
+expect object Stdin : Read {
+}

@@ -1,35 +1,37 @@
 use crate::type_wrapper::TypeWrapper;
 
 #[repr(C)]
-pub enum TypedResult {
+pub enum FFIResult {
     Ok(TypeWrapper),
     Err(TypeWrapper),
 }
 
-impl TypedResult {
+impl FFIResult {
     #[no_mangle]
     pub extern "C" fn is_oK(&self) -> bool {
-        matches!(self, TypedResult::Ok(_))
+        matches!(self, Self::Ok(_))
     }
 
     #[no_mangle]
     pub extern "C" fn is_err(&self) -> bool {
-        matches!(self, TypedResult::Err(_))
+        matches!(self, Self::Err(_))
     }
 
     #[no_mangle]
     pub extern "C" fn unwrap(self) -> TypeWrapper {
         match self {
-            TypedResult::Ok(value) => value,
-            TypedResult::Err(error) => error,
+            Self::Ok(value) => value,
+            Self::Err(error) => {
+                panic!("called `FFIResult::unwrap()` on an `Err` value")
+            }
         }
     }
 
     #[no_mangle]
     pub extern "C" fn unwrap_err(self) -> TypeWrapper {
         match self {
-            TypedResult::Ok(value) => value,
-            TypedResult::Err(error) => error,
+            Self::Ok(value) => value,
+            Self::Err(error) => error,
         }
     }
 }
