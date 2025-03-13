@@ -22,11 +22,11 @@ void free_stderr(void *stderr_ptr);
 
 FFIResult stdin_init(void);
 
-FFIResult stdin_read(void *stdin_ptr, FFIByteArray array_buffer);
+FFIResult stdin_read(FFIHandle stdin_handle, FFIByteArray array_buffer);
 
-FFIResult stdin_read_to_end(void *stdin_ptr);
+FFIResult stdin_read_to_end(FFIHandle stdin_handle);
 
-void free_stdin(void *stdin_ptr);
+void free_stdin(FFIHandle stdin_handle);
 
 FFIResult stdout_init(void);
 
@@ -38,4 +38,4 @@ FFIResult stdout_flush(void *stdout_ptr);
 
 void free_stdout(void *stdout_ptr);
 
-#endif /* RIO_H */
+#endif  /* RIO_H */

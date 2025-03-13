@@ -12,6 +12,8 @@ crate-type = ["rlib", "staticlib"]
 
 [dependencies]
 ffk.workspace = true
+lazy_static.workspace = true
+dashmap.workspace = true
 
 [build-dependencies]
-cbindgen = "0.26.0"
+cbindgen = "0.28.0"

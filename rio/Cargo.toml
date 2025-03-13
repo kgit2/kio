@@ -1,6 +1,7 @@
 [workspace]
 members = [
     "rio",
+    "ffk",
     "executor",
 ]
 resolver = "2"
@@ -13,4 +14,6 @@ license = "Apache-2.0"
 homepage = "https://github.com/kgit2/kio"
 
 [workspace.dependencies]
-ffk = { path = "../../ffk" }
+ffk = { path = "ffk" }
+lazy_static = "1.5.0"
+dashmap = "7.0.0-rc2"

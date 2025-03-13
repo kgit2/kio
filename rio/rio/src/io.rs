@@ -10,7 +10,7 @@ pub fn mut_borrow_from_ptr<'a, T>(ptr: *mut std::ffi::c_void) -> &'a mut T {
     unsafe { &mut *(ptr as *mut T) }
 }
 
-pub fn from_io_result<T, F: FnOnce(T) -> FFIValue>(
+pub fn io_ffi_result<T, F: FnOnce(T) -> FFIValue>(
     io_result: std::io::Result<T>,
     get_real_data: F,
 ) -> FFIResult {
