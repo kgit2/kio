@@ -10,15 +10,19 @@ FFIResult file_open(char *path);
 
 FFIResult file_create(char *path);
 
+FFIResult file_read(FFIHandle file_handle, FFIByteArray array_buffer);
+
+FFIResult file_write(FFIHandle file_handle, FFIByteArray buffer);
+
 FFIResult stderr_init(void);
 
-FFIResult stderr_write(void *stderr_ptr, FFIByteArray array_buffer);
+FFIResult stderr_write(FFIHandle stderr_handle, FFIByteArray array_buffer);
 
-FFIResult stderr_write_all(void *stderr_ptr, FFIByteArray array_buffer);
+FFIResult stderr_write_all(FFIHandle stderr_handle, FFIByteArray array_buffer);
 
-FFIResult stderr_flush(void *stderr_ptr);
+FFIResult stderr_flush(FFIHandle stderr_handle);
 
-void free_stderr(void *stderr_ptr);
+void free_stderr(FFIHandle stderr_handle);
 
 FFIResult stdin_init(void);
 
@@ -30,12 +34,12 @@ void free_stdin(FFIHandle stdin_handle);
 
 FFIResult stdout_init(void);
 
-FFIResult stdout_write(void *stdout_ptr, FFIByteArray array_buffer);
+FFIResult stdout_write(FFIHandle stdout_handle, FFIByteArray array_buffer);
 
-FFIResult stdout_write_all(void *stdout_ptr, FFIByteArray array_buffer);
+FFIResult stdout_write_all(FFIHandle stdout_handle, FFIByteArray array_buffer);
 
-FFIResult stdout_flush(void *stdout_ptr);
+FFIResult stdout_flush(FFIHandle stdout_handle);
 
-void free_stdout(void *stdout_ptr);
+void free_stdout(FFIHandle stdout_handle);
 
 #endif  /* RIO_H */

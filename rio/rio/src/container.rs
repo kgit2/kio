@@ -34,6 +34,7 @@ impl<T> HandleContainer<T> {
         self.container.remove(&handle.handle);
     }
 
+    #[allow(unused)]
     pub fn get(&self, handle: &FFIHandle) -> Option<FFIRef<u64, T>> {
         self.container.get(&handle.handle).map(|v| FFIRef(v))
     }

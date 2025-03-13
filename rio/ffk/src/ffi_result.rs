@@ -8,6 +8,12 @@ pub enum FFIResult {
 }
 
 impl FFIResult {
+    pub fn handle_error() -> Self {
+        Self::Err(FFIValue::String(
+            "Cannot find raw pointer from handle".to_string().into_ffi(),
+        ))
+    }
+
     #[unsafe(no_mangle)]
     pub extern "C" fn is_oK(&self) -> bool {
         matches!(self, Self::Ok(_))

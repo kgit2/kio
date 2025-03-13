@@ -1,44 +1,56 @@
-use crate::io::{io_ffi_result, mut_borrow_from_ptr};
+use crate::container::HandleContainer;
+use crate::io::io_ffi_result;
 use ffk::ffi_convertor::ffi_byte_array::FFIByteArray;
+use ffk::ffi_handle::FFIHandle;
 use ffk::ffi_result::FFIResult;
 use ffk::ffi_value::FFIValue;
 use std::io::Write;
+use std::sync::LazyLock;
+
+static STDERR_CONTAINER: LazyLock<HandleContainer<std::io::Stderr>> =
+    LazyLock::new(HandleContainer::new);
 
 #[no_mangle]
 pub extern "C" fn stderr_init() -> FFIResult {
-    let stderr_ptr = Box::into_raw(Box::new(std::io::stderr())) as *mut std::ffi::c_void;
-    FFIResult::Ok(FFIValue::COpaquePointer(stderr_ptr))
+    let stderr = std::io::stderr();
+    let handle = STDERR_CONTAINER.create_handle(stderr, FFIHandle::stderr);
+    FFIResult::Ok(FFIValue::Handle(handle))
 }
 
 #[no_mangle]
-pub extern "C" fn stderr_write(
-    stderr_ptr: *mut std::ffi::c_void,
-    array_buffer: FFIByteArray,
-) -> FFIResult {
-    let stderr = mut_borrow_from_ptr::<std::io::Stderr>(stderr_ptr);
-    let buf = unsafe { std::slice::from_raw_parts(array_buffer.buffer, array_buffer.len) };
-    io_ffi_result(stderr.write(buf), FFIValue::from)
+pub extern "C" fn stderr_write(stderr_handle: FFIHandle, array_buffer: FFIByteArray) -> FFIResult {
+    match STDERR_CONTAINER.get_mut(&stderr_handle) {
+        Some(mut stderr) => {
+            let buf = unsafe { std::slice::from_raw_parts(array_buffer.buffer, array_buffer.len) };
+            io_ffi_result(stderr.write(buf), FFIValue::from)
+        }
+        None => FFIResult::handle_error(),
+    }
 }
 
 #[no_mangle]
 pub extern "C" fn stderr_write_all(
-    stderr_ptr: *mut std::ffi::c_void,
+    stderr_handle: FFIHandle,
     array_buffer: FFIByteArray,
 ) -> FFIResult {
-    let stderr = mut_borrow_from_ptr::<std::io::Stderr>(stderr_ptr);
-    let buf = unsafe { std::slice::from_raw_parts(array_buffer.buffer, array_buffer.len) };
-    io_ffi_result(stderr.write_all(buf), |_| FFIValue::Unit)
-}
-
-#[no_mangle]
-pub extern "C" fn stderr_flush(stderr_ptr: *mut std::ffi::c_void) -> FFIResult {
-    let stderr = mut_borrow_from_ptr::<std::io::Stderr>(stderr_ptr);
-    io_ffi_result(stderr.flush(), |_| FFIValue::Unit)
-}
-
-#[no_mangle]
-pub extern "C" fn free_stderr(stderr_ptr: *mut std::ffi::c_void) {
-    unsafe {
-        drop(Box::from_raw(stderr_ptr as *mut std::io::Stderr));
+    match STDERR_CONTAINER.get_mut(&stderr_handle) {
+        Some(mut stderr) => {
+            let buf = unsafe { std::slice::from_raw_parts(array_buffer.buffer, array_buffer.len) };
+            io_ffi_result(stderr.write_all(buf), |_| FFIValue::Unit)
+        }
+        None => FFIResult::handle_error(),
     }
+}
+
+#[no_mangle]
+pub extern "C" fn stderr_flush(stderr_handle: FFIHandle) -> FFIResult {
+    match STDERR_CONTAINER.get_mut(&stderr_handle) {
+        Some(mut stderr) => io_ffi_result(stderr.flush(), |_| FFIValue::Unit),
+        None => FFIResult::handle_error(),
+    }
+}
+
+#[no_mangle]
+pub extern "C" fn free_stderr(stderr_handle: FFIHandle) {
+    STDERR_CONTAINER.free_handle(stderr_handle)
 }

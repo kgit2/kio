@@ -1,6 +1,3 @@
-use crate::ffi_result::FFIResult;
-use std::io::Stdin;
-
 #[repr(C)]
 pub struct FFIHandle {
     pub handle: u64,
