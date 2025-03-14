@@ -1,4 +1,4 @@
-use ffk::ffi_convertor::ffi_byte_array::FFIByteArray;
+use ffk::ffi_convertor::ffi_bytes::FFIByteArray;
 use ffk::ffi_convertor::FFIConvertor;
 use ffk::ffi_result::FFIResult;
 use std::io::Read;

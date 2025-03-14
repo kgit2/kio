@@ -7,10 +7,14 @@
 #include <stdlib.h>
 
 typedef enum FFIHandleType {
-  File,
   Stdin,
   Stdout,
   Stderr,
+  Path,
+  File,
+  Metadata,
+  ReadDir,
+  DirEntry,
 } FFIHandleType;
 
 typedef struct FFIByteArray {

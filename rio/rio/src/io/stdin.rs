@@ -1,6 +1,6 @@
 use crate::container::HandleContainer;
 use crate::io::ffi_read::{read, read_to_end};
-use ffk::ffi_convertor::ffi_byte_array::FFIByteArray;
+use ffk::ffi_convertor::ffi_bytes::FFIByteArray;
 use ffk::ffi_handle::FFIHandle;
 use ffk::ffi_result::FFIResult;
 use std::io::Stdin;

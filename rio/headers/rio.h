@@ -51,4 +51,52 @@ FFIResult stdout_flush(const FFIHandle *stdout_handle);
 
 void free_stdout(const FFIHandle *stdout_handle);
 
+FFIResult path_init(FFIByteArray buffer);
+
+FFIResult path_push(const FFIHandle *handle, FFIByteArray buffer);
+
+FFIResult path_pop(const FFIHandle *handle);
+
+FFIResult path_set_file_name(const FFIHandle *handle, FFIByteArray buffer);
+
+FFIResult path_set_extension(const FFIHandle *handle, FFIByteArray buffer);
+
+FFIResult path_clear(const FFIHandle *handle);
+
+FFIResult path_clone(const FFIHandle *handle);
+
+FFIResult path_eq(const FFIHandle *handle, const FFIHandle *other);
+
+FFIResult path_hash(const FFIHandle *handle);
+
+FFIResult path_compare(const FFIHandle *handle, const FFIHandle *other);
+
+FFIResult path_to_string(const FFIHandle *handle);
+
+FFIResult path_to_string_lossy(const FFIHandle *handle);
+
+FFIResult path_file_name(const FFIHandle *handle);
+
+FFIResult path_extension(const FFIHandle *handle);
+
+FFIResult path_parent(const FFIHandle *handle);
+
+FFIResult path_exists(const FFIHandle *handle);
+
+FFIResult path_is_file(const FFIHandle *handle);
+
+FFIResult path_is_dir(const FFIHandle *handle);
+
+FFIResult path_is_absolute(const FFIHandle *handle);
+
+FFIResult path_is_relative(const FFIHandle *handle);
+
+FFIResult path_canonicalize(const FFIHandle *handle);
+
+FFIResult path_metadata(const FFIHandle *handle);
+
+FFIResult path_read_dir(const FFIHandle *handle);
+
+FFIResult path_components(const FFIHandle *handle);
+
 #endif  /* RIO_H */

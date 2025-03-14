@@ -34,14 +34,46 @@ impl FFIHandle {
             handle_type: FFIHandleType::File,
         }
     }
+
+    pub fn metadata(index: u64) -> FFIHandle {
+        FFIHandle {
+            index,
+            handle_type: FFIHandleType::Metadata,
+        }
+    }
+
+    pub fn path(index: u64) -> FFIHandle {
+        FFIHandle {
+            index,
+            handle_type: FFIHandleType::Path,
+        }
+    }
+
+    pub fn read_dir(index: u64) -> FFIHandle {
+        FFIHandle {
+            index,
+            handle_type: FFIHandleType::ReadDir,
+        }
+    }
+
+    pub fn dir_entry(index: u64) -> FFIHandle {
+        FFIHandle {
+            index,
+            handle_type: FFIHandleType::DirEntry,
+        }
+    }
 }
 
 #[repr(C)]
 pub enum FFIHandleType {
-    File,
     Stdin,
     Stdout,
     Stderr,
+    Path,
+    File,
+    Metadata,
+    ReadDir,
+    DirEntry,
 }
 
 impl From<FFIHandle> for FFIValue {

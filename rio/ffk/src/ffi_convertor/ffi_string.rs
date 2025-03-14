@@ -8,7 +8,7 @@ impl FFIConvertor for String {
         CString::new(self).unwrap().into_raw()
     }
 
-    unsafe fn from_ffi(ffi: Self::FFIType) -> Self {
+    unsafe fn from_ffi_borrowed(ffi: Self::FFIType) -> Self {
         if ffi.is_null() {
             return String::new();
         }

@@ -1,6 +1,6 @@
 use crate::container::HandleContainer;
 use crate::io::ffi_write::{flush, write, write_all};
-use ffk::ffi_convertor::ffi_byte_array::FFIByteArray;
+use ffk::ffi_convertor::ffi_bytes::FFIByteArray;
 use ffk::ffi_handle::FFIHandle;
 use ffk::ffi_result::FFIResult;
 use std::io::Stderr;

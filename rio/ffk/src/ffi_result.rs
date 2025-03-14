@@ -30,7 +30,7 @@ impl FFIResult {
             Self::Ok(value) => value,
             Self::Err(error) => match error {
                 FFIValue::String(error) => {
-                    let error = unsafe { String::from_ffi(error) };
+                    let error = unsafe { String::from_ffi_borrowed(error) };
                     panic!("called `FFIResult::unwrap()` on an `Err` value: {}", error)
                 }
                 _ => panic!("Unexpected error type"),

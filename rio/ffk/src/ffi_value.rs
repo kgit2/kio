@@ -1,4 +1,4 @@
-use crate::ffi_convertor::ffi_byte_array::FFIByteArray;
+use crate::ffi_convertor::ffi_bytes::FFIByteArray;
 use crate::ffi_handle::FFIHandle;
 use crate::ffi_value;
 
