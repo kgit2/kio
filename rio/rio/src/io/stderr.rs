@@ -1,20 +1,19 @@
 use crate::container::HandleContainer;
-use crate::io::io_ffi_result;
+use crate::io::ffi_write::{flush, write, write_all};
 use ffk::ffi_convertor::ffi_byte_array::FFIByteArray;
 use ffk::ffi_handle::FFIHandle;
 use ffk::ffi_result::FFIResult;
-use ffk::ffi_value::FFIValue;
-use std::io::Write;
+use std::io::Stderr;
+use std::ops::DerefMut;
 use std::sync::LazyLock;
 
-static STDERR_CONTAINER: LazyLock<HandleContainer<std::io::Stderr>> =
-    LazyLock::new(HandleContainer::new);
+static STDERR_CONTAINER: LazyLock<HandleContainer<Stderr>> = LazyLock::new(HandleContainer::new);
 
 #[no_mangle]
 pub extern "C" fn stderr_init() -> FFIResult {
     let stderr = std::io::stderr();
     let handle = STDERR_CONTAINER.create_handle(stderr, FFIHandle::stderr);
-    FFIResult::Ok(FFIValue::Handle(handle))
+    FFIResult::Ok(handle.into())
 }
 
 #[no_mangle]
@@ -22,7 +21,7 @@ pub extern "C" fn stderr_write(stderr_handle: FFIHandle, array_buffer: FFIByteAr
     match STDERR_CONTAINER.get_mut(&stderr_handle) {
         Some(mut stderr) => {
             let buf = unsafe { std::slice::from_raw_parts(array_buffer.buffer, array_buffer.len) };
-            io_ffi_result(stderr.write(buf), FFIValue::from)
+            write(stderr.deref_mut(), buf)
         }
         None => FFIResult::handle_error(),
     }
@@ -36,7 +35,7 @@ pub extern "C" fn stderr_write_all(
     match STDERR_CONTAINER.get_mut(&stderr_handle) {
         Some(mut stderr) => {
             let buf = unsafe { std::slice::from_raw_parts(array_buffer.buffer, array_buffer.len) };
-            io_ffi_result(stderr.write_all(buf), |_| FFIValue::Unit)
+            write_all(stderr.deref_mut(), buf)
         }
         None => FFIResult::handle_error(),
     }
@@ -45,7 +44,7 @@ pub extern "C" fn stderr_write_all(
 #[no_mangle]
 pub extern "C" fn stderr_flush(stderr_handle: FFIHandle) -> FFIResult {
     match STDERR_CONTAINER.get_mut(&stderr_handle) {
-        Some(mut stderr) => io_ffi_result(stderr.flush(), |_| FFIValue::Unit),
+        Some(mut stderr) => flush(stderr.deref_mut()),
         None => FFIResult::handle_error(),
     }
 }

@@ -1,3 +1,5 @@
+use crate::ffi_value::FFIValue;
+
 #[repr(C)]
 pub struct FFIHandle {
     pub handle: u64,
@@ -40,4 +42,10 @@ pub enum FFIHandleType {
     Stdin,
     Stdout,
     Stderr,
+}
+
+impl From<FFIHandle> for FFIValue {
+    fn from(value: FFIHandle) -> Self {
+        FFIValue::Handle(value)
+    }
 }

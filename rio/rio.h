@@ -12,7 +12,13 @@ FFIResult file_create(char *path);
 
 FFIResult file_read(FFIHandle file_handle, FFIByteArray array_buffer);
 
+FFIResult file_read_to_end(FFIHandle file_handle);
+
 FFIResult file_write(FFIHandle file_handle, FFIByteArray buffer);
+
+FFIResult file_write_all(FFIHandle file_handle, FFIByteArray buffer);
+
+FFIResult file_flush(FFIHandle file_handle);
 
 FFIResult stderr_init(void);
 

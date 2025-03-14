@@ -1,12 +1,13 @@
 use crate::container::HandleContainer;
-use crate::io::io_ffi_result;
+use crate::io::ffi_read::{read, read_to_end};
+use crate::io::ffi_write::{flush, write, write_all};
 use ffk::ffi_convertor::ffi_byte_array::FFIByteArray;
 use ffk::ffi_convertor::FFIConvertor;
 use ffk::ffi_handle::FFIHandle;
 use ffk::ffi_result::FFIResult;
 use ffk::ffi_value::FFIValue;
 use std::fs::File;
-use std::io::{Read, Write};
+use std::ops::DerefMut;
 use std::sync::LazyLock;
 
 static FILE_CONTAINER: LazyLock<HandleContainer<File>> = LazyLock::new(HandleContainer::new);
@@ -39,7 +40,18 @@ pub extern "C" fn file_read(file_handle: FFIHandle, array_buffer: FFIByteArray) 
         Some(mut file) => {
             let mut buf =
                 unsafe { std::slice::from_raw_parts_mut(array_buffer.buffer, array_buffer.len) };
-            io_ffi_result(file.read(&mut buf), FFIValue::from)
+            read(file.deref_mut(), &mut buf)
+        }
+        None => FFIResult::handle_error(),
+    }
+}
+
+#[no_mangle]
+pub extern "C" fn file_read_to_end(file_handle: FFIHandle) -> FFIResult {
+    match FILE_CONTAINER.get_mut(&file_handle) {
+        Some(mut file) => {
+            let mut buf = Vec::<u8>::new();
+            read_to_end(file.deref_mut(), &mut buf)
         }
         None => FFIResult::handle_error(),
     }
@@ -50,8 +62,27 @@ pub extern "C" fn file_write(file_handle: FFIHandle, buffer: FFIByteArray) -> FF
     match FILE_CONTAINER.get_mut(&file_handle) {
         Some(mut file) => {
             let buf = unsafe { std::slice::from_raw_parts(buffer.buffer, buffer.len) };
-            io_ffi_result(file.write(buf), FFIValue::from)
+            write(file.deref_mut(), buf)
         }
+        None => FFIResult::handle_error(),
+    }
+}
+
+#[no_mangle]
+pub extern "C" fn file_write_all(file_handle: FFIHandle, buffer: FFIByteArray) -> FFIResult {
+    match FILE_CONTAINER.get_mut(&file_handle) {
+        Some(mut file) => {
+            let buf = unsafe { std::slice::from_raw_parts(buffer.buffer, buffer.len) };
+            write_all(file.deref_mut(), buf)
+        }
+        None => FFIResult::handle_error(),
+    }
+}
+
+#[no_mangle]
+pub extern "C" fn file_flush(file_handle: FFIHandle) -> FFIResult {
+    match FILE_CONTAINER.get_mut(&file_handle) {
+        Some(mut file) => flush(file.deref_mut()),
         None => FFIResult::handle_error(),
     }
 }
