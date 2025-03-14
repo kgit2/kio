@@ -35,54 +35,46 @@ pub extern "C" fn file_create(path: *mut std::ffi::c_char) -> FFIResult {
 }
 
 #[no_mangle]
-pub extern "C" fn file_read(file_handle: FFIHandle, array_buffer: FFIByteArray) -> FFIResult {
-    match FILE_CONTAINER.get_mut(&file_handle) {
-        Some(mut file) => {
-            let mut buf =
-                unsafe { std::slice::from_raw_parts_mut(array_buffer.buffer, array_buffer.len) };
-            read(file.deref_mut(), &mut buf)
-        }
+pub extern "C" fn file_read(file_handle: &FFIHandle, buffer: FFIByteArray) -> FFIResult {
+    match FILE_CONTAINER.get_mut(file_handle) {
+        Some(mut file) => read(file.deref_mut(), buffer),
         None => FFIResult::handle_error(),
     }
 }
 
 #[no_mangle]
-pub extern "C" fn file_read_to_end(file_handle: FFIHandle) -> FFIResult {
-    match FILE_CONTAINER.get_mut(&file_handle) {
-        Some(mut file) => {
-            let mut buf = Vec::<u8>::new();
-            read_to_end(file.deref_mut(), &mut buf)
-        }
+pub extern "C" fn file_read_to_end(file_handle: &FFIHandle) -> FFIResult {
+    match FILE_CONTAINER.get_mut(file_handle) {
+        Some(mut file) => read_to_end(file.deref_mut()),
         None => FFIResult::handle_error(),
     }
 }
 
 #[no_mangle]
-pub extern "C" fn file_write(file_handle: FFIHandle, buffer: FFIByteArray) -> FFIResult {
-    match FILE_CONTAINER.get_mut(&file_handle) {
-        Some(mut file) => {
-            let buf = unsafe { std::slice::from_raw_parts(buffer.buffer, buffer.len) };
-            write(file.deref_mut(), buf)
-        }
+pub extern "C" fn file_write(file_handle: &FFIHandle, buffer: FFIByteArray) -> FFIResult {
+    match FILE_CONTAINER.get_mut(file_handle) {
+        Some(mut file) => write(file.deref_mut(), buffer),
         None => FFIResult::handle_error(),
     }
 }
 
 #[no_mangle]
-pub extern "C" fn file_write_all(file_handle: FFIHandle, buffer: FFIByteArray) -> FFIResult {
-    match FILE_CONTAINER.get_mut(&file_handle) {
-        Some(mut file) => {
-            let buf = unsafe { std::slice::from_raw_parts(buffer.buffer, buffer.len) };
-            write_all(file.deref_mut(), buf)
-        }
+pub extern "C" fn file_write_all(file_handle: &FFIHandle, buffer: FFIByteArray) -> FFIResult {
+    match FILE_CONTAINER.get_mut(file_handle) {
+        Some(mut file) => write_all(file.deref_mut(), buffer),
         None => FFIResult::handle_error(),
     }
 }
 
 #[no_mangle]
-pub extern "C" fn file_flush(file_handle: FFIHandle) -> FFIResult {
-    match FILE_CONTAINER.get_mut(&file_handle) {
+pub extern "C" fn file_flush(file_handle: &FFIHandle) -> FFIResult {
+    match FILE_CONTAINER.get_mut(file_handle) {
         Some(mut file) => flush(file.deref_mut()),
         None => FFIResult::handle_error(),
     }
+}
+
+#[no_mangle]
+pub extern "C" fn free_file(file_handle: &FFIHandle) {
+    FILE_CONTAINER.free_handle(file_handle)
 }

@@ -30,17 +30,17 @@ impl<T> HandleContainer<T> {
         handle_type(index)
     }
 
-    pub fn free_handle(&self, handle: FFIHandle) {
-        self.container.remove(&handle.handle);
+    pub fn free_handle(&self, handle: &FFIHandle) {
+        self.container.remove(&handle.index);
     }
 
     #[allow(unused)]
     pub fn get(&self, handle: &FFIHandle) -> Option<FFIRef<u64, T>> {
-        self.container.get(&handle.handle).map(|v| FFIRef(v))
+        self.container.get(&handle.index).map(|v| FFIRef(v))
     }
 
     pub fn get_mut(&self, handle: &FFIHandle) -> Option<FFIRefMut<'_, u64, T>> {
-        self.container.get_mut(&handle.handle).map(|v| FFIRefMut(v))
+        self.container.get_mut(&handle.index).map(|v| FFIRefMut(v))
     }
 }
 

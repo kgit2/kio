@@ -6,4 +6,5 @@ authors.workspace = true
 license.workspace = true
 homepage.workspace = true
 
-[dependencies]
+[build-dependencies]
+cbindgen.workspace = true

@@ -17,39 +17,30 @@ pub extern "C" fn stdout_init() -> FFIResult {
 }
 
 #[no_mangle]
-pub extern "C" fn stdout_write(stdout_handle: FFIHandle, array_buffer: FFIByteArray) -> FFIResult {
-    match STDOUT_CONTAINER.get_mut(&stdout_handle) {
-        Some(mut stdout) => {
-            let buf = unsafe { std::slice::from_raw_parts(array_buffer.buffer, array_buffer.len) };
-            write(stdout.deref_mut(), buf)
-        }
+pub extern "C" fn stdout_write(stdout_handle: &FFIHandle, buffer: FFIByteArray) -> FFIResult {
+    match STDOUT_CONTAINER.get_mut(stdout_handle) {
+        Some(mut stdout) => write(stdout.deref_mut(), buffer),
         None => FFIResult::handle_error(),
     }
 }
 
 #[no_mangle]
-pub extern "C" fn stdout_write_all(
-    stdout_handle: FFIHandle,
-    array_buffer: FFIByteArray,
-) -> FFIResult {
-    match STDOUT_CONTAINER.get_mut(&stdout_handle) {
-        Some(mut stdout) => {
-            let buf = unsafe { std::slice::from_raw_parts(array_buffer.buffer, array_buffer.len) };
-            write_all(stdout.deref_mut(), buf)
-        }
+pub extern "C" fn stdout_write_all(stdout_handle: &FFIHandle, buffer: FFIByteArray) -> FFIResult {
+    match STDOUT_CONTAINER.get_mut(stdout_handle) {
+        Some(mut stdout) => write_all(stdout.deref_mut(), buffer),
         None => FFIResult::handle_error(),
     }
 }
 
 #[no_mangle]
-pub extern "C" fn stdout_flush(stdout_handle: FFIHandle) -> FFIResult {
-    match STDOUT_CONTAINER.get_mut(&stdout_handle) {
+pub extern "C" fn stdout_flush(stdout_handle: &FFIHandle) -> FFIResult {
+    match STDOUT_CONTAINER.get_mut(stdout_handle) {
         Some(mut stdout) => flush(stdout.deref_mut()),
         None => FFIResult::handle_error(),
     }
 }
 
 #[no_mangle]
-pub extern "C" fn free_stdout(stdout_handle: FFIHandle) {
+pub extern "C" fn free_stdout(stdout_handle: &FFIHandle) {
     STDOUT_CONTAINER.free_handle(stdout_handle)
 }

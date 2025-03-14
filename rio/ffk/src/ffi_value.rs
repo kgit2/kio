@@ -41,7 +41,7 @@ ffi_value! {
     }
     Exclude {
         String(*mut std::ffi::c_char, to_string),
-        Array(ArrayBuffer, to_array_buffer),
+        Array(ArrayBuffer, to_byte_array),
         Unit((), to_unit),
     }
 }

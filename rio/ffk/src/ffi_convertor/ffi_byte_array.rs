@@ -36,6 +36,6 @@ impl From<Vec<u8>> for FFIByteArray {
 }
 
 #[unsafe(no_mangle)]
-pub extern "C" fn free_array_buffer(array_buffer: FFIByteArray) {
-    unsafe { Vec::<u8>::free(array_buffer) }
+pub extern "C" fn free_byte_array(buffer: FFIByteArray) {
+    unsafe { Vec::<u8>::free(buffer) }
 }

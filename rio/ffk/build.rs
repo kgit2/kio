@@ -10,13 +10,12 @@ fn main() {
     cbindgen::Builder::new()
         .with_crate(crate_dir.clone())
         .with_language(cbindgen::Language::C)
-        .with_include_guard("RIO_H")
+        .with_include_guard("FFK_H")
         // .with_sys_include("stdint.h")
         // .with_sys_include("stdbool.h")
         // .with_no_includes()
-        .with_include("ffk.h")
         .rename_item("bool", "int")
         .generate()
         .expect("Unable to generate bindings")
-        .write_to_file(format!("{}/../headers/rio.h", crate_dir));
+        .write_to_file(format!("{}/../headers/ffk.h", crate_dir));
 }

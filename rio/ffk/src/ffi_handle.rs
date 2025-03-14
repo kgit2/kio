@@ -2,35 +2,35 @@ use crate::ffi_value::FFIValue;
 
 #[repr(C)]
 pub struct FFIHandle {
-    pub handle: u64,
+    pub index: u64,
     pub handle_type: FFIHandleType,
 }
 
 impl FFIHandle {
-    pub fn stdin(handle: u64) -> FFIHandle {
+    pub fn stdin(index: u64) -> FFIHandle {
         FFIHandle {
-            handle,
+            index,
             handle_type: FFIHandleType::Stdin,
         }
     }
 
-    pub fn stdout(handle: u64) -> FFIHandle {
+    pub fn stdout(index: u64) -> FFIHandle {
         FFIHandle {
-            handle,
+            index,
             handle_type: FFIHandleType::Stdout,
         }
     }
 
-    pub fn stderr(handle: u64) -> FFIHandle {
+    pub fn stderr(index: u64) -> FFIHandle {
         FFIHandle {
-            handle,
+            index,
             handle_type: FFIHandleType::Stderr,
         }
     }
 
-    pub fn file(handle: u64) -> FFIHandle {
+    pub fn file(index: u64) -> FFIHandle {
         FFIHandle {
-            handle,
+            index,
             handle_type: FFIHandleType::File,
         }
     }

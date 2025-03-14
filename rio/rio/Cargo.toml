@@ -16,4 +16,4 @@ lazy_static.workspace = true
 dashmap.workspace = true
 
 [build-dependencies]
-cbindgen = "0.28.0"
+cbindgen.workspace = true

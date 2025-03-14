@@ -75,6 +75,18 @@ kotlin {
     }
 }
 
+tasks {
+    val clean by getting(Task::class)
+
+    val cleanInterop by creating(Delete::class) {
+        group = "interop"
+        dependsOn(clean)
+        val commonizer = rootProject.file(".kotlin/metadata/commonizer")
+        val kotlinCInteropLibraries = rootProject.file(".kotlin/metadata/kotlinCInteropLibraries")
+        delete(commonizer)
+        delete(kotlinCInteropLibraries)
+    }
+}
 // android {
 //     namespace = "org.jetbrains.kotlinx.multiplatform.library.template"
 //     compileSdk = libs.versions.android.compileSdk.get().toInt()

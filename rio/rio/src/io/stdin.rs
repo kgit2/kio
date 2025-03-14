@@ -17,29 +17,22 @@ pub extern "C" fn stdin_init() -> FFIResult {
 }
 
 #[no_mangle]
-pub extern "C" fn stdin_read(stdin_handle: FFIHandle, array_buffer: FFIByteArray) -> FFIResult {
-    match STDIN_CONTAINER.get_mut(&stdin_handle) {
-        Some(mut stdin) => {
-            let buf =
-                unsafe { std::slice::from_raw_parts_mut(array_buffer.buffer, array_buffer.len) };
-            read(stdin.deref_mut(), buf)
-        }
+pub extern "C" fn stdin_read(stdin_handle: &FFIHandle, buffer: FFIByteArray) -> FFIResult {
+    match STDIN_CONTAINER.get_mut(stdin_handle) {
+        Some(mut stdin) => read(stdin.deref_mut(), buffer),
         None => FFIResult::handle_error(),
     }
 }
 
 #[no_mangle]
-pub extern "C" fn stdin_read_to_end(stdin_handle: FFIHandle) -> FFIResult {
-    match STDIN_CONTAINER.get_mut(&stdin_handle) {
-        Some(mut stdin) => {
-            let mut buf = Vec::<u8>::new();
-            read_to_end(stdin.deref_mut(), &mut buf)
-        }
+pub extern "C" fn stdin_read_to_end(stdin_handle: &FFIHandle) -> FFIResult {
+    match STDIN_CONTAINER.get_mut(stdin_handle) {
+        Some(mut stdin) => read_to_end(stdin.deref_mut()),
         None => FFIResult::handle_error(),
     }
 }
 
 #[no_mangle]
-pub extern "C" fn free_stdin(stdin_handle: FFIHandle) {
+pub extern "C" fn free_stdin(stdin_handle: &FFIHandle) {
     STDIN_CONTAINER.free_handle(stdin_handle)
 }
