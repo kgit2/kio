@@ -1,9 +1,9 @@
-use ffk::ffi_convertor::ffi_bytes::FFIByteArray;
-use ffk::ffi_convertor::FFIConvertor;
 use ffk::ffi_result::FFIResult;
+use ffk::ffi_value::ffi_bytes::FFIBytes;
+use ffk::ffi_value::IntoFFIValue;
 use std::io::Read;
 
-pub fn read<R: Read>(reader: &mut R, buffer: FFIByteArray) -> FFIResult {
+pub fn read<R: Read>(reader: &mut R, buffer: FFIBytes) -> FFIResult {
     let buf = unsafe { std::slice::from_raw_parts_mut(buffer.buffer, buffer.len) };
     match reader.read(buf) {
         Ok(size) => FFIResult::Ok(size.into()),
@@ -16,7 +16,7 @@ pub fn read_to_end<R: Read>(reader: &mut R) -> FFIResult {
     match reader.read_to_end(&mut buf) {
         Ok(size) => {
             buf.truncate(size);
-            FFIResult::Ok(buf.into_ffi().into())
+            FFIResult::Ok(buf.into_ffi_value())
         }
         Err(error) => error.into(),
     }

@@ -17,16 +17,27 @@ typedef enum FFIHandleType {
   DirEntry,
 } FFIHandleType;
 
-typedef struct FFIByteArray {
+typedef struct FFIString {
+  char *buffer;
+  uintptr_t len;
+} FFIString;
+
+typedef struct FFIBytes {
   uint8_t *buffer;
   uintptr_t len;
   uintptr_t capacity;
-} FFIByteArray;
+} FFIBytes;
 
 typedef struct FFIHandle {
   uint64_t index;
   enum FFIHandleType handle_type;
 } FFIHandle;
+
+typedef struct FFIVec {
+  struct FFIValue *items;
+  uintptr_t len;
+  uintptr_t capacity;
+} FFIVec;
 
 typedef enum FFIValue_Tag {
   Int8,
@@ -43,8 +54,9 @@ typedef enum FFIValue_Tag {
   Double,
   Boolean,
   String,
-  Array,
+  Bytes,
   Handle,
+  Vec,
   Unit,
 } FFIValue_Tag;
 
@@ -91,13 +103,16 @@ typedef struct FFIValue {
       bool boolean;
     };
     struct {
-      char *string;
+      struct FFIString string;
     };
     struct {
-      struct FFIByteArray array;
+      struct FFIBytes bytes;
     };
     struct {
       struct FFIHandle handle;
+    };
+    struct {
+      struct FFIVec vec;
     };
   };
 } FFIValue;
@@ -105,6 +120,7 @@ typedef struct FFIValue {
 typedef enum FFIResult_Tag {
   Ok,
   Err,
+  None,
 } FFIResult_Tag;
 
 typedef struct FFIResult {
@@ -119,19 +135,16 @@ typedef struct FFIResult {
   };
 } FFIResult;
 
-void free_byte_array(struct FFIByteArray buffer);
-
-/**
- * # Safety
- */
-void free_string(char *string_ptr);
-
-bool is_oK(const struct FFIResult *self);
+bool is_ok(const struct FFIResult *self);
 
 bool is_err(const struct FFIResult *self);
 
-struct FFIValue unwrap(struct FFIResult self);
+struct FFIValue result_unwrap(struct FFIResult self);
 
 struct FFIValue unwrap_err(struct FFIResult self);
+
+void free_ffi_bytes(struct FFIBytes self);
+
+void free_ffi_string(struct FFIString self);
 
 #endif  /* FFK_H */

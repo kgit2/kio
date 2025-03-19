@@ -1,8 +1,8 @@
 use crate::container::HandleContainer;
 use crate::io::ffi_write::{flush, write, write_all};
-use ffk::ffi_convertor::ffi_bytes::FFIByteArray;
 use ffk::ffi_handle::FFIHandle;
 use ffk::ffi_result::FFIResult;
+use ffk::ffi_value::ffi_bytes::FFIBytes;
 use std::io::Stderr;
 use std::ops::DerefMut;
 use std::sync::LazyLock;
@@ -17,7 +17,7 @@ pub extern "C" fn stderr_init() -> FFIResult {
 }
 
 #[no_mangle]
-pub extern "C" fn stderr_write(stderr_handle: &FFIHandle, buffer: FFIByteArray) -> FFIResult {
+pub extern "C" fn stderr_write(stderr_handle: &FFIHandle, buffer: FFIBytes) -> FFIResult {
     match STDERR_CONTAINER.get_mut(stderr_handle) {
         Some(mut stderr) => write(stderr.deref_mut(), buffer),
         None => FFIResult::handle_error(),
@@ -25,7 +25,7 @@ pub extern "C" fn stderr_write(stderr_handle: &FFIHandle, buffer: FFIByteArray) 
 }
 
 #[no_mangle]
-pub extern "C" fn stderr_write_all(stderr_handle: &FFIHandle, buffer: FFIByteArray) -> FFIResult {
+pub extern "C" fn stderr_write_all(stderr_handle: &FFIHandle, buffer: FFIBytes) -> FFIResult {
     match STDERR_CONTAINER.get_mut(stderr_handle) {
         Some(mut stderr) => write_all(stderr.deref_mut(), buffer),
         None => FFIResult::handle_error(),

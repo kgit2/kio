@@ -1,0 +1,75 @@
+use crate::ffi_convertor::{FromFFI, IntoFFI};
+use crate::ffi_value::{FFIValue, IntoFFIValue};
+use std::ffi::{CStr, CString};
+
+#[repr(C)]
+#[derive(Debug)]
+pub struct FFIString {
+    pub buffer: *mut std::ffi::c_char,
+    pub len: usize,
+}
+
+impl IntoFFI for String {
+    type FFIType = FFIString;
+
+    fn into_ffi(self) -> Self::FFIType {
+        let len = self.len();
+        let buffer = CString::new(self).unwrap().into_raw();
+        FFIString { buffer, len }
+    }
+}
+
+impl FromFFI for FFIString {
+    type OriginRef = str;
+    type OriginOwned = String;
+
+    fn as_origin(&self) -> &Self::OriginRef {
+        if self.buffer.is_null() {
+            panic!("FFI buffer is null");
+        }
+        unsafe { CStr::from_ptr(self.buffer).to_str().unwrap() }
+    }
+
+    fn into_origin(self) -> Self::OriginOwned {
+        if self.buffer.is_null() {
+            panic!("FFI buffer is null");
+        }
+        unsafe { CString::from_raw(self.buffer).to_str().unwrap().to_string() }
+    }
+}
+
+impl FFIString {
+    #[no_mangle]
+    pub extern "C" fn free_ffi_string(self) {
+        if self.buffer.is_null() {
+            return;
+        }
+        drop(self.into_origin());
+    }
+}
+
+impl From<String> for FFIString {
+    fn from(value: String) -> Self {
+        value.into_ffi()
+    }
+}
+
+impl IntoFFIValue for FFIString {
+    fn into_ffi_value(self) -> FFIValue {
+        FFIValue::String(self)
+    }
+}
+
+impl IntoFFIValue for String {
+    fn into_ffi_value(self) -> FFIValue {
+        self.into_ffi().into_ffi_value()
+    }
+}
+
+impl Drop for FFIString {
+    fn drop(&mut self) {
+        if !self.buffer.is_null() {
+            unsafe { drop(CString::from_raw(self.buffer)) }
+        }
+    }
+}

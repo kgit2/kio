@@ -1,11 +1,10 @@
 use crate::container::HandleContainer;
 use crate::fs::metadata::metadata_init;
 use crate::fs::read_dir::read_dir_init;
-use ffk::ffi_convertor::ffi_bytes::FFIByteArray;
-use ffk::ffi_convertor::FFIConvertor;
 use ffk::ffi_handle::FFIHandle;
 use ffk::ffi_result::FFIResult;
-use ffk::ffi_value::FFIValue;
+use ffk::ffi_value::ffi_bytes::FFIBytes;
+use ffk::ffi_value::{FFIValue, IntoFFIValue};
 use std::cmp::Ordering;
 use std::hash::{DefaultHasher, Hash, Hasher};
 use std::ops::Deref;
@@ -15,14 +14,14 @@ use std::sync::LazyLock;
 static PATH_CONTAINER: LazyLock<HandleContainer<PathBuf>> = LazyLock::new(HandleContainer::new);
 
 #[no_mangle]
-pub extern "C" fn path_init(buffer: FFIByteArray) -> FFIResult {
+pub extern "C" fn path_init(buffer: FFIBytes) -> FFIResult {
     let path = PathBuf::from(String::from(buffer));
     let handle = PATH_CONTAINER.create_handle(path, FFIHandle::path);
     FFIResult::Ok(handle.into())
 }
 
 #[no_mangle]
-pub extern "C" fn path_push(handle: &FFIHandle, buffer: FFIByteArray) -> FFIResult {
+pub extern "C" fn path_push(handle: &FFIHandle, buffer: FFIBytes) -> FFIResult {
     match PATH_CONTAINER.get_mut(handle) {
         None => FFIResult::handle_error(),
         Some(mut path) => {
@@ -44,7 +43,7 @@ pub extern "C" fn path_pop(handle: &FFIHandle) -> FFIResult {
 }
 
 #[no_mangle]
-pub extern "C" fn path_set_file_name(handle: &FFIHandle, buffer: FFIByteArray) -> FFIResult {
+pub extern "C" fn path_set_file_name(handle: &FFIHandle, buffer: FFIBytes) -> FFIResult {
     match PATH_CONTAINER.get_mut(handle) {
         None => FFIResult::handle_error(),
         Some(mut path) => {
@@ -55,7 +54,7 @@ pub extern "C" fn path_set_file_name(handle: &FFIHandle, buffer: FFIByteArray) -
 }
 
 #[no_mangle]
-pub extern "C" fn path_set_extension(handle: &FFIHandle, buffer: FFIByteArray) -> FFIResult {
+pub extern "C" fn path_set_extension(handle: &FFIHandle, buffer: FFIBytes) -> FFIResult {
     match PATH_CONTAINER.get_mut(handle) {
         None => FFIResult::handle_error(),
         Some(mut path) => {
@@ -126,8 +125,8 @@ pub extern "C" fn path_compare(handle: &FFIHandle, other: &FFIHandle) -> FFIResu
 pub extern "C" fn path_to_string(handle: &FFIHandle) -> FFIResult {
     match PATH_CONTAINER.get(handle) {
         Some(path) => match path.to_str() {
-            Some(s) => FFIResult::Ok(s.to_string().into_ffi().into()),
-            None => FFIResult::Err("Path contains invalid UTF-8".to_string().into_ffi().into()),
+            Some(s) => FFIResult::Ok(s.to_string().into_ffi_value()),
+            None => FFIResult::Err("Path contains invalid UTF-8".to_string().into_ffi_value()),
         },
         None => FFIResult::handle_error(),
     }
@@ -136,7 +135,7 @@ pub extern "C" fn path_to_string(handle: &FFIHandle) -> FFIResult {
 #[no_mangle]
 pub extern "C" fn path_to_string_lossy(handle: &FFIHandle) -> FFIResult {
     match PATH_CONTAINER.get(handle) {
-        Some(path) => FFIResult::Ok(path.to_string_lossy().to_string().into_ffi().into()),
+        Some(path) => FFIResult::Ok(path.to_string_lossy().to_string().into_ffi_value()),
         None => FFIResult::handle_error(),
     }
 }
@@ -147,9 +146,9 @@ pub extern "C" fn path_file_name(handle: &FFIHandle) -> FFIResult {
         Some(path) => match path.file_name() {
             Some(os_str) => {
                 let file_name = os_str.to_string_lossy().to_string();
-                FFIResult::Ok(file_name.into_ffi().into())
+                FFIResult::Ok(file_name.into_ffi_value())
             }
-            None => FFIResult::Ok("".to_string().into_ffi().into()),
+            None => FFIResult::Ok("".to_string().into_ffi_value()),
         },
         None => FFIResult::handle_error(),
     }
@@ -161,9 +160,9 @@ pub extern "C" fn path_extension(handle: &FFIHandle) -> FFIResult {
         Some(path) => match path.extension() {
             Some(os_str) => {
                 let extension = os_str.to_string_lossy().to_string();
-                FFIResult::Ok(extension.into_ffi().into())
+                FFIResult::Ok(extension.into_ffi_value())
             }
-            None => FFIResult::Ok("".to_string().into_ffi().into()),
+            None => FFIResult::Ok("".to_string().into_ffi_value()),
         },
         None => FFIResult::handle_error(),
     }
@@ -273,7 +272,7 @@ pub extern "C" fn path_components(handle: &FFIHandle) -> FFIResult {
                 .components()
                 .map(|c| c.as_os_str().to_string_lossy().to_string());
             let components = components.collect::<Vec<_>>();
-            FFIResult::Ok(components.into_ffi().into())
+            FFIResult::Ok(components.into_ffi_value())
         }
         None => FFIResult::handle_error(),
     }

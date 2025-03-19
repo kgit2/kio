@@ -1,16 +1,15 @@
-pub mod ffi_bytes;
-mod ffi_bytes_array;
-pub mod ffi_string;
-
-pub trait FFIConvertor {
+pub trait IntoFFI {
     type FFIType;
     fn into_ffi(self) -> Self::FFIType;
+}
 
-    /// # Safety
-    unsafe fn from_ffi_borrowed(ffi: Self::FFIType) -> Self;
+pub trait FromFFI {
+    type OriginRef: ?Sized; // 引用类型（允许 unsized）
+    type OriginOwned; // 所有权类型
 
-    unsafe fn from_ffi_owned(ffi: Self::FFIType) -> Self;
+    // 零拷贝转换
+    fn as_origin(&self) -> &Self::OriginRef;
 
-    /// # Safety
-    unsafe fn free(ffi: Self::FFIType);
+    // 所有权转移转换
+    fn into_origin(self) -> Self::OriginOwned;
 }

@@ -1,8 +1,19 @@
-use crate::ffi_convertor::ffi_bytes::FFIByteArray;
+pub mod ffi_bytes;
+pub mod ffi_string;
+pub mod ffi_vec;
+
 use crate::ffi_handle::FFIHandle;
 use crate::ffi_value;
+use crate::ffi_value::ffi_bytes::FFIBytes;
+use crate::ffi_value::ffi_string::FFIString;
+use crate::ffi_value::ffi_vec::FFIVec;
+
+pub trait IntoFFIValue {
+    fn into_ffi_value(self) -> FFIValue;
+}
 
 #[repr(C)]
+#[derive(Debug)]
 pub enum FFIValue {
     Int8(i8),
     UInt8(u8),
@@ -17,9 +28,12 @@ pub enum FFIValue {
     Float(f32),
     Double(f64),
     Boolean(bool),
-    String(*mut std::ffi::c_char),
-    Array(FFIByteArray),
+    String(FFIString),
+    Bytes(FFIBytes),
     Handle(FFIHandle),
+    Vec(FFIVec),
+    // Result(*mut FFIResult),
+    // Option(*mut FFIOption),
     Unit,
 }
 
@@ -40,20 +54,27 @@ ffi_value! {
         Boolean(bool, to_boolean),
     }
     Exclude {
-        String(*mut std::ffi::c_char, to_string),
-        Array(ArrayBuffer, to_byte_array),
+        String(FFIString, to_string),
+        Bytes(FFIBytes, to_bytes),
+        Vec(FFIVec, to_vec),
         Unit((), to_unit),
     }
 }
 
-impl From<*mut std::ffi::c_char> for FFIValue {
-    fn from(value: *mut std::ffi::c_char) -> Self {
-        FFIValue::String(value)
-    }
-}
-
-impl From<FFIByteArray> for FFIValue {
-    fn from(value: FFIByteArray) -> Self {
-        FFIValue::Array(value)
-    }
-}
+// impl Drop for FFIValue {
+//     fn drop(&mut self) {
+//         match self {
+//             FFIValue::Result(result) => {
+//                 if !result.is_null() {
+//                     drop(unsafe { Box::from_raw(result) });
+//                 }
+//             }
+//             FFIValue::Option(option) => {
+//                 if !option.is_null() {
+//                     drop(unsafe { Box::from_raw(option) });
+//                 }
+//             }
+//             _ => {}
+//         }
+//     }
+// }

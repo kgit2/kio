@@ -1,5 +1,6 @@
 package io
 
+import handleError
 import kotlinx.cinterop.*
 import rio.*
 import kotlin.native.ref.createCleaner
@@ -30,7 +31,7 @@ actual object Stdout : Write {
             return Result.failure(Exception("buf size is less than len"))
         }
 
-        val buffer = cValue<FFIByteArray> {
+        val buffer = cValue<FFIBytes> {
             buffer = buf.asUByteArray().refTo(0).getPointer(this@memScoped)
             this.len = len.toULong()
             capacity = buf.size.toULong()
@@ -39,11 +40,7 @@ actual object Stdout : Write {
         stdout_write(handle.value, buffer).useContents {
             when (tag) {
                 rio.FFIResult_Tag.Ok -> Result.success(ok.u_long.toInt())
-                rio.FFIResult_Tag.Err -> {
-                    val errorMessage = err.string?.toKStringFromUtf8()
-                    free_string(err.string)
-                    Result.failure(Exception(errorMessage))
-                }
+                rio.FFIResult_Tag.Err -> Result.failure(handleError(err.string))
                 else -> Result.failure(Exception("Unknown error"))
             }
         }
@@ -54,7 +51,7 @@ actual object Stdout : Write {
             return Result.success(Unit)
         }
 
-        val buffer = cValue<FFIByteArray> {
+        val buffer = cValue<FFIBytes> {
             buffer = buf.asUByteArray().refTo(0).getPointer(this@memScoped)
             len = buf.size.toULong()
             capacity = buf.size.toULong()
@@ -63,11 +60,7 @@ actual object Stdout : Write {
         return stdout_write_all(handle.value, buffer).useContents {
             when (tag) {
                 rio.FFIResult_Tag.Ok -> Result.success(Unit)
-                rio.FFIResult_Tag.Err -> {
-                    val errorMessage = err.string?.toKStringFromUtf8()
-                    free_string(err.string)
-                    Result.failure(Exception(errorMessage))
-                }
+                rio.FFIResult_Tag.Err -> Result.failure(handleError(err.string))
                 else -> Result.failure(Exception("Unknown error"))
             }
         }
@@ -77,11 +70,7 @@ actual object Stdout : Write {
         return stdout_flush(handle.value).useContents {
             when (tag) {
                 rio.FFIResult_Tag.Ok -> Result.success(Unit)
-                rio.FFIResult_Tag.Err -> {
-                    val errorMessage = err.string?.toKStringFromUtf8()
-                    free_string(err.string)
-                    Result.failure(Exception(errorMessage))
-                }
+                rio.FFIResult_Tag.Err -> Result.failure(handleError(err.string))
                 else -> Result.failure(Exception("Unknown error"))
             }
         }

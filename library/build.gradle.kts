@@ -80,11 +80,13 @@ tasks {
 
     val cleanInterop by creating(Delete::class) {
         group = "interop"
-        dependsOn(clean)
+        val dotKotlin = rootProject.file(".kotlin")
         val commonizer = rootProject.file(".kotlin/metadata/commonizer")
         val kotlinCInteropLibraries = rootProject.file(".kotlin/metadata/kotlinCInteropLibraries")
         delete(commonizer)
         delete(kotlinCInteropLibraries)
+        delete(dotKotlin)
+        dependsOn(clean)
     }
 }
 // android {

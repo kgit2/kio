@@ -6,3 +6,4 @@ pub mod result;
 #[macro_use]
 mod macros;
 pub mod ffi_handle;
+pub mod ffi_option;

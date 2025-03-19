@@ -1,8 +1,8 @@
 use crate::container::HandleContainer;
 use crate::io::ffi_read::{read, read_to_end};
-use ffk::ffi_convertor::ffi_bytes::FFIByteArray;
 use ffk::ffi_handle::FFIHandle;
 use ffk::ffi_result::FFIResult;
+use ffk::ffi_value::ffi_bytes::FFIBytes;
 use std::io::Stdin;
 use std::ops::DerefMut;
 use std::sync::LazyLock;
@@ -17,7 +17,7 @@ pub extern "C" fn stdin_init() -> FFIResult {
 }
 
 #[no_mangle]
-pub extern "C" fn stdin_read(stdin_handle: &FFIHandle, buffer: FFIByteArray) -> FFIResult {
+pub extern "C" fn stdin_read(stdin_handle: &FFIHandle, buffer: FFIBytes) -> FFIResult {
     match STDIN_CONTAINER.get_mut(stdin_handle) {
         Some(mut stdin) => read(stdin.deref_mut(), buffer),
         None => FFIResult::handle_error(),

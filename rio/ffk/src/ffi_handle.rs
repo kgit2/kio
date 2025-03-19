@@ -1,6 +1,7 @@
 use crate::ffi_value::FFIValue;
 
 #[repr(C)]
+#[derive(Debug, Clone)]
 pub struct FFIHandle {
     pub index: u64,
     pub handle_type: FFIHandleType,
@@ -65,6 +66,7 @@ impl FFIHandle {
 }
 
 #[repr(C)]
+#[derive(Debug, Clone)]
 pub enum FFIHandleType {
     Stdin,
     Stdout,
