@@ -48,8 +48,8 @@ typedef enum FFIValue_Tag {
   UInt32,
   Int64,
   UInt64,
-  Long,
-  ULong,
+  ISize,
+  USize,
   Float,
   Double,
   Boolean,
@@ -88,10 +88,10 @@ typedef struct FFIValue {
       uint64_t u_int64;
     };
     struct {
-      intptr_t long_;
+      intptr_t i_size;
     };
     struct {
-      uintptr_t u_long;
+      uintptr_t u_size;
     };
     struct {
       float float_;
@@ -143,8 +143,10 @@ struct FFIValue result_unwrap(struct FFIResult self);
 
 struct FFIValue unwrap_err(struct FFIResult self);
 
-void free_ffi_bytes(struct FFIBytes self);
+void free_ffi_bytes(struct FFIBytes *self);
 
-void free_ffi_string(struct FFIString self);
+void free_ffi_string(struct FFIString *self);
+
+void free_ffi_vec(struct FFIVec *self);
 
 #endif  /* FFK_H */

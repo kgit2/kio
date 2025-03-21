@@ -3,7 +3,7 @@ use ffk::ffi_value::ffi_bytes::FFIBytes;
 use ffk::ffi_value::IntoFFIValue;
 use std::io::Read;
 
-pub fn read<R: Read>(reader: &mut R, buffer: FFIBytes) -> FFIResult {
+pub fn read<R: Read>(reader: &mut R, buffer: &mut FFIBytes) -> FFIResult {
     let buf = unsafe { std::slice::from_raw_parts_mut(buffer.buffer, buffer.len) };
     match reader.read(buf) {
         Ok(size) => FFIResult::Ok(size.into()),

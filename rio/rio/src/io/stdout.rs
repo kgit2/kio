@@ -17,7 +17,7 @@ pub extern "C" fn stdout_init() -> FFIResult {
 }
 
 #[no_mangle]
-pub extern "C" fn stdout_write(stdout_handle: &FFIHandle, buffer: FFIBytes) -> FFIResult {
+pub extern "C" fn stdout_write(stdout_handle: &FFIHandle, buffer: &FFIBytes) -> FFIResult {
     match STDOUT_CONTAINER.get_mut(stdout_handle) {
         Some(mut stdout) => write(stdout.deref_mut(), buffer),
         None => FFIResult::handle_error(),
@@ -25,7 +25,7 @@ pub extern "C" fn stdout_write(stdout_handle: &FFIHandle, buffer: FFIBytes) -> F
 }
 
 #[no_mangle]
-pub extern "C" fn stdout_write_all(stdout_handle: &FFIHandle, buffer: FFIBytes) -> FFIResult {
+pub extern "C" fn stdout_write_all(stdout_handle: &FFIHandle, buffer: &FFIBytes) -> FFIResult {
     match STDOUT_CONTAINER.get_mut(stdout_handle) {
         Some(mut stdout) => write_all(stdout.deref_mut(), buffer),
         None => FFIResult::handle_error(),

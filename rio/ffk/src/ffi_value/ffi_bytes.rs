@@ -43,7 +43,14 @@ impl FromFFI for FFIBytes {
         unsafe { std::slice::from_raw_parts(self.buffer, self.len) }
     }
 
-    fn into_origin(self) -> Self::OriginOwned {
+    fn as_origin_mut(&mut self) -> &mut Self::OriginRef {
+        if self.buffer.is_null() {
+            panic!("FFI buffer is null");
+        }
+        unsafe { std::slice::from_raw_parts_mut(self.buffer, self.len) }
+    }
+
+    fn into_origin(&mut self) -> Self::OriginOwned {
         if self.buffer.is_null() {
             panic!("FFI buffer is null");
         }
@@ -53,7 +60,7 @@ impl FromFFI for FFIBytes {
 
 impl FFIBytes {
     #[no_mangle]
-    pub extern "C" fn free_ffi_bytes(self) {
+    pub extern "C" fn free_ffi_bytes(&mut self) {
         if self.buffer.is_null() {
             return;
         }

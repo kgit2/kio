@@ -24,19 +24,19 @@ pub fn return_file_ffi_result(file: Result<File, std::io::Error>) -> FFIResult {
 }
 
 #[no_mangle]
-pub extern "C" fn file_open(path: FFIString) -> FFIResult {
-    let path = path.into_origin();
+pub extern "C" fn file_open(path: &FFIString) -> FFIResult {
+    let path = path.as_origin();
     return_file_ffi_result(File::open(path))
 }
 
 #[no_mangle]
-pub extern "C" fn file_create(path: FFIString) -> FFIResult {
-    let path = path.into_origin();
+pub extern "C" fn file_create(path: &FFIString) -> FFIResult {
+    let path = path.as_origin();
     return_file_ffi_result(File::create(path))
 }
 
 #[no_mangle]
-pub extern "C" fn file_read(file_handle: &FFIHandle, buffer: FFIBytes) -> FFIResult {
+pub extern "C" fn file_read(file_handle: &FFIHandle, buffer: &mut FFIBytes) -> FFIResult {
     match FILE_CONTAINER.get_mut(file_handle) {
         Some(mut file) => read(file.deref_mut(), buffer),
         None => FFIResult::handle_error(),
@@ -52,7 +52,7 @@ pub extern "C" fn file_read_to_end(file_handle: &FFIHandle) -> FFIResult {
 }
 
 #[no_mangle]
-pub extern "C" fn file_write(file_handle: &FFIHandle, buffer: FFIBytes) -> FFIResult {
+pub extern "C" fn file_write(file_handle: &FFIHandle, buffer: &FFIBytes) -> FFIResult {
     match FILE_CONTAINER.get_mut(file_handle) {
         Some(mut file) => write(file.deref_mut(), buffer),
         None => FFIResult::handle_error(),
@@ -60,7 +60,7 @@ pub extern "C" fn file_write(file_handle: &FFIHandle, buffer: FFIBytes) -> FFIRe
 }
 
 #[no_mangle]
-pub extern "C" fn file_write_all(file_handle: &FFIHandle, buffer: FFIBytes) -> FFIResult {
+pub extern "C" fn file_write_all(file_handle: &FFIHandle, buffer: &FFIBytes) -> FFIResult {
     match FILE_CONTAINER.get_mut(file_handle) {
         Some(mut file) => write_all(file.deref_mut(), buffer),
         None => FFIResult::handle_error(),

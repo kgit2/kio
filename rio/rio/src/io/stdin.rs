@@ -17,7 +17,7 @@ pub extern "C" fn stdin_init() -> FFIResult {
 }
 
 #[no_mangle]
-pub extern "C" fn stdin_read(stdin_handle: &FFIHandle, buffer: FFIBytes) -> FFIResult {
+pub extern "C" fn stdin_read(stdin_handle: &FFIHandle, buffer: &mut FFIBytes) -> FFIResult {
     match STDIN_CONTAINER.get_mut(stdin_handle) {
         Some(mut stdin) => read(stdin.deref_mut(), buffer),
         None => FFIResult::handle_error(),

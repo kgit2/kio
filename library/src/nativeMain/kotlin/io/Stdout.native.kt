@@ -6,7 +6,7 @@ import rio.*
 import kotlin.native.ref.createCleaner
 
 actual object Stdout : Write {
-    val handle: Lazy<CValue<FFIHandle>> = lazy {
+    val internal: Lazy<CValue<FFIHandle>> = lazy {
         stdout_init().useContents {
             val handle = ok.handle
             return@lazy cValue<FFIHandle> {
@@ -16,9 +16,9 @@ actual object Stdout : Write {
         }
     }
 
-    val cleaner = createCleaner(handle) {
-        if (handle.isInitialized()) {
-            free_stdin(handle.value)
+    val cleaner = createCleaner(internal) {
+        if (internal.isInitialized()) {
+            free_stdin(internal.value)
         }
     }
 
@@ -33,13 +33,13 @@ actual object Stdout : Write {
 
         val buffer = cValue<FFIBytes> {
             buffer = buf.asUByteArray().refTo(0).getPointer(this@memScoped)
-            this.len = len.toULong()
-            capacity = buf.size.toULong()
+            this.len = len.convert()
+            capacity = buf.size.convert()
         }
 
-        stdout_write(handle.value, buffer).useContents {
+        stdout_write(internal.value, buffer).useContents {
             when (tag) {
-                rio.FFIResult_Tag.Ok -> Result.success(ok.u_long.toInt())
+                rio.FFIResult_Tag.Ok -> Result.success(ok.u_size.convert())
                 rio.FFIResult_Tag.Err -> Result.failure(handleError(err.string))
                 else -> Result.failure(Exception("Unknown error"))
             }
@@ -53,11 +53,11 @@ actual object Stdout : Write {
 
         val buffer = cValue<FFIBytes> {
             buffer = buf.asUByteArray().refTo(0).getPointer(this@memScoped)
-            len = buf.size.toULong()
-            capacity = buf.size.toULong()
+            len = buf.size.convert()
+            capacity = buf.size.convert()
         }
 
-        return stdout_write_all(handle.value, buffer).useContents {
+        return stdout_write_all(internal.value, buffer).useContents {
             when (tag) {
                 rio.FFIResult_Tag.Ok -> Result.success(Unit)
                 rio.FFIResult_Tag.Err -> Result.failure(handleError(err.string))
@@ -67,7 +67,7 @@ actual object Stdout : Write {
     }
 
     override fun flush(): Result<Unit> {
-        return stdout_flush(handle.value).useContents {
+        return stdout_flush(internal.value).useContents {
             when (tag) {
                 rio.FFIResult_Tag.Ok -> Result.success(Unit)
                 rio.FFIResult_Tag.Err -> Result.failure(handleError(err.string))

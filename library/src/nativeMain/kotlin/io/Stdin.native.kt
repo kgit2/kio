@@ -7,7 +7,7 @@ import rio.FFIResult_Tag.*
 import kotlin.native.ref.createCleaner
 
 actual object Stdin : Read {
-    private val handle: Lazy<CValue<FFIHandle>> = lazy {
+    private val internal: Lazy<CValue<FFIHandle>> = lazy {
         stdin_init().useContents {
             val handle = ok.handle
             return@lazy cValue<FFIHandle> {
@@ -17,9 +17,8 @@ actual object Stdin : Read {
         }
     }
 
-    val cleaner = createCleaner(handle) { handle ->
+    val cleaner = createCleaner(internal) { handle ->
         if (handle.isInitialized()) {
-            // 销毁 stdin
             free_stdin(handle.value)
         }
     }
@@ -36,15 +35,15 @@ actual object Stdin : Read {
         // 获取 ByteArray 指针
         val buffer = cValue<FFIBytes> {
             buffer = buf.asUByteArray().refTo(0).getPointer(this@memScoped)
-            this.len = len.toULong()
-            this.capacity = buf.size.toULong()
+            this.len = len.convert()
+            this.capacity = buf.size.convert()
         }
 
         // 调用 Rust FFI 方法
-        val result: CValue<FFIResult> = stdin_read(handle.value.ptr, buffer)
+        val result: CValue<FFIResult> = stdin_read(internal.value.ptr, buffer)
         result.useContents {
             when (tag) {
-                Ok -> Result.success(ok.u_long.toInt())
+                Ok -> Result.success(ok.u_size.convert())
                 Err -> Result.failure(handleError(err.string))
                 else -> Result.failure(Exception("Unknown error"))
             }
@@ -52,11 +51,11 @@ actual object Stdin : Read {
     }
 
     override fun readToEnd(buf: MutableList<UByte>): Result<Int> = memScoped {
-        val result = stdin_read_to_end(handle.value.ptr)
+        val result = stdin_read_to_end(internal.value.ptr)
         return result.useContents {
             when (tag) {
                 Ok -> {
-                    val size = ok.bytes.len.toInt()
+                    val size: Int = ok.bytes.len.convert()
                     val data = ok.bytes.buffer
                     for (i in 0 until size) {
                         data?.get(i)?.toUByte()?.let {

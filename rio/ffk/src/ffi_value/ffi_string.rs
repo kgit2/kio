@@ -27,10 +27,24 @@ impl FromFFI for FFIString {
         if self.buffer.is_null() {
             panic!("FFI buffer is null");
         }
-        unsafe { CStr::from_ptr(self.buffer).to_str().unwrap() }
+        unsafe {
+            CStr::from_ptr(self.buffer)
+                .to_str()
+                .expect("Invalid UTF-8 sequence")
+        }
     }
 
-    fn into_origin(self) -> Self::OriginOwned {
+    fn as_origin_mut(&mut self) -> &mut Self::OriginRef {
+        if self.buffer.is_null() {
+            panic!("FFI buffer is null");
+        }
+        unsafe {
+            let bytes = std::slice::from_raw_parts_mut(self.buffer as *mut u8, self.len);
+            std::str::from_utf8_mut(bytes).expect("Invalid UTF-8 sequence")
+        }
+    }
+
+    fn into_origin(&mut self) -> Self::OriginOwned {
         if self.buffer.is_null() {
             panic!("FFI buffer is null");
         }
@@ -40,7 +54,7 @@ impl FromFFI for FFIString {
 
 impl FFIString {
     #[no_mangle]
-    pub extern "C" fn free_ffi_string(self) {
+    pub extern "C" fn free_ffi_string(&mut self) {
         if self.buffer.is_null() {
             return;
         }

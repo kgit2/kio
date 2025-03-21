@@ -6,7 +6,7 @@ import rio.*
 import kotlin.native.ref.createCleaner
 
 actual object Stderr : Write {
-    val handle: Lazy<CValue<FFIHandle>> = lazy {
+    val internal: Lazy<CValue<FFIHandle>> = lazy {
         stderr_init().useContents {
             val handle = ok.handle
             return@lazy cValue<FFIHandle> {
@@ -16,9 +16,9 @@ actual object Stderr : Write {
         }
     }
 
-    val cleaner = createCleaner(handle) {
-        if (handle.isInitialized()) {
-            free_stdin(handle.value)
+    val cleaner = createCleaner(internal) {
+        if (internal.isInitialized()) {
+            free_stdin(internal.value)
         }
     }
 
@@ -27,19 +27,19 @@ actual object Stderr : Write {
             Result.success(0)
         }
 
-        if (buf.size < len.toInt()) {
+        if (buf.size < len) {
             return Result.failure(Exception("buf size is less than len"))
         }
 
         val buffer = cValue<FFIBytes> {
             this.buffer = buf.asUByteArray().refTo(0).getPointer(this@memScoped)
-            this.len = len.toULong()
-            this.capacity = buf.size.toULong()
+            this.len = len.convert()
+            this.capacity = buf.size.convert()
         }
 
-        stderr_write(Stdout.handle.value, buffer).useContents {
+        stderr_write(Stdout.internal.value, buffer).useContents {
             when (tag) {
-                rio.FFIResult_Tag.Ok -> Result.success(ok.u_long.toInt())
+                rio.FFIResult_Tag.Ok -> Result.success(ok.u_int64.convert())
                 rio.FFIResult_Tag.Err -> Result.failure(handleError(err.string))
                 else -> Result.failure(Exception("Unknown error"))
             }
@@ -53,11 +53,11 @@ actual object Stderr : Write {
 
         val buffer = cValue<FFIBytes> {
             buffer = buf.asUByteArray().refTo(0).getPointer(this@memScoped)
-            len = buf.size.toULong()
-            capacity = buf.size.toULong()
+            len = buf.size.convert()
+            capacity = buf.size.convert()
         }
 
-        stderr_write_all(Stdout.handle.value, buffer).useContents {
+        stderr_write_all(Stdout.internal.value, buffer).useContents {
             when (tag) {
                 rio.FFIResult_Tag.Ok -> Result.success(Unit)
                 rio.FFIResult_Tag.Err -> Result.failure(handleError(err.string))
@@ -67,7 +67,7 @@ actual object Stderr : Write {
     }
 
     override fun flush(): Result<Unit> {
-        return stderr_flush(handle.value).useContents {
+        return stderr_flush(internal.value).useContents {
             when (tag) {
                 rio.FFIResult_Tag.Ok -> Result.success(Unit)
                 rio.FFIResult_Tag.Err -> Result.failure(handleError(err.string))

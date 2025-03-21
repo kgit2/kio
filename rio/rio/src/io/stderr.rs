@@ -17,7 +17,7 @@ pub extern "C" fn stderr_init() -> FFIResult {
 }
 
 #[no_mangle]
-pub extern "C" fn stderr_write(stderr_handle: &FFIHandle, buffer: FFIBytes) -> FFIResult {
+pub extern "C" fn stderr_write(stderr_handle: &FFIHandle, buffer: &FFIBytes) -> FFIResult {
     match STDERR_CONTAINER.get_mut(stderr_handle) {
         Some(mut stderr) => write(stderr.deref_mut(), buffer),
         None => FFIResult::handle_error(),
@@ -25,7 +25,7 @@ pub extern "C" fn stderr_write(stderr_handle: &FFIHandle, buffer: FFIBytes) -> F
 }
 
 #[no_mangle]
-pub extern "C" fn stderr_write_all(stderr_handle: &FFIHandle, buffer: FFIBytes) -> FFIResult {
+pub extern "C" fn stderr_write_all(stderr_handle: &FFIHandle, buffer: &FFIBytes) -> FFIResult {
     match STDERR_CONTAINER.get_mut(stderr_handle) {
         Some(mut stderr) => write_all(stderr.deref_mut(), buffer),
         None => FFIResult::handle_error(),

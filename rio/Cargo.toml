@@ -18,3 +18,4 @@ ffk = { path = "ffk" }
 lazy_static = "1.5.0"
 dashmap = "7.0.0-rc2"
 cbindgen = "0.28.0"
+path-clean = "1.0.1"

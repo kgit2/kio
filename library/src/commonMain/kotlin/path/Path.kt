@@ -1,25 +1,32 @@
 package path
 
-class Path (
-    val inner: String
-) {
-    constructor(path: Path) : this(path.inner)
-
-    fun join(other: String): Path {
-        return Path("$inner/$other")
+expect class Path(value: String): Comparable<Path> {
+    companion object {
+        fun cwd(): Path
     }
 
-    override fun equals(other: Any?): Boolean {
-        if (this === other) return true
-        if (other == null || this::class != other::class) return false
+    fun push(value: String)
+    fun pop(): Boolean
+    fun fileName(): String
+    fun extension(): String
+    fun parent(): Path
+    fun setFileName(name: String)
+    fun setExtension(extension: String)
 
-        other as Path
+    fun normalize(): Path
+    fun canonicalize(): Path
+    fun isAbsolute(): Boolean
+    fun isRelative(): Boolean
 
-        return inner == other.inner
-    }
+    fun exists(): Boolean
+    fun isFile(): Boolean
+    fun isDirectory(): Boolean
 
-    override fun hashCode(): Int {
-        return inner.hashCode()
-    }
+    // fun metadata(): Metadata
+    // fun readDir(): List<Path>
+    fun components(): List<String>
 
+    fun clear()
+    fun clone(): Path
+    fun toStringLossy(): String
 }
