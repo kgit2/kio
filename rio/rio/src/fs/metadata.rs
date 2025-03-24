@@ -53,7 +53,7 @@ pub extern "C" fn metadata_len(handle: &FFIHandle) -> FFIResult {
 }
 
 #[no_mangle]
-pub extern "C" fn metadata_read_only(handle: &FFIHandle) -> FFIResult {
+pub extern "C" fn metadata_readonly(handle: &FFIHandle) -> FFIResult {
     match METADATA_CONTAINER.get(handle) {
         None => FFIResult::handle_error(),
         Some(metadata) => FFIResult::Ok(FFIValue::Boolean(metadata.permissions().readonly())),
@@ -61,7 +61,7 @@ pub extern "C" fn metadata_read_only(handle: &FFIHandle) -> FFIResult {
 }
 
 #[no_mangle]
-pub extern "C" fn metadata_set_read_only(handle: &FFIHandle, readonly: bool) -> FFIResult {
+pub extern "C" fn metadata_set_readonly(handle: &FFIHandle, readonly: bool) -> FFIResult {
     match METADATA_CONTAINER.get_mut(handle) {
         None => FFIResult::handle_error(),
         Some(metadata) => {
@@ -94,4 +94,9 @@ pub extern "C" fn metadata_set_mode(handle: &FFIHandle, mode: u32) -> FFIResult 
             FFIResult::Ok(FFIValue::Unit)
         }
     }
+}
+
+#[no_mangle]
+pub extern "C" fn free_metadata(handle: &FFIHandle) {
+    METADATA_CONTAINER.free_handle(handle);
 }

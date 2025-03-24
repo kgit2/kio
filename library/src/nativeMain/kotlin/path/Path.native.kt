@@ -1,5 +1,6 @@
 package path
 
+import fs.Metadata
 import fs.ReadDir
 import handleError
 import kotlinx.cinterop.CValue
@@ -173,6 +174,17 @@ actual class Path(
         return path_is_dir(internal.ptr).useContents {
             when (tag) {
                 FFIResult_Tag.Ok -> ok.boolean
+                FFIResult_Tag.Err -> throw handleError(err.string)
+                else -> throw Exception("Unknown error")
+            }
+        }
+    }
+
+    actual fun metadata(): Metadata = memScoped {
+        return path_metadata(internal.ptr).useContents {
+            when (tag) {
+                FFIResult_Tag.Ok -> Metadata(ok.handle.toCValue())
+                FFIResult_Tag.None -> throw NullPointerException()
                 FFIResult_Tag.Err -> throw handleError(err.string)
                 else -> throw Exception("Unknown error")
             }

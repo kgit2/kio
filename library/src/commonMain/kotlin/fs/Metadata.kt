@@ -1,4 +1,8 @@
 package fs
 
-class Metadata {
+expect class Metadata private constructor() {
+    fun fileType(): FileType
+    fun len(): ULong
+    fun readonly(): Boolean
+    fun setReadonly(value: Boolean)
 }

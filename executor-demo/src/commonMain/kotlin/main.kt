@@ -19,7 +19,7 @@ fun main() {
         val readDir = path.readDir()
         readDir.use {
             while (readDir.hasNext()) {
-                readDir.next()
+                readDir.next().use {  }
             }
         }
     }

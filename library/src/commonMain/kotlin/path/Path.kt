@@ -1,5 +1,6 @@
 package path
 
+import fs.Metadata
 import fs.ReadDir
 
 expect class Path(value: String): Comparable<Path> {
@@ -24,7 +25,7 @@ expect class Path(value: String): Comparable<Path> {
     fun isFile(): Boolean
     fun isDirectory(): Boolean
 
-    // fun metadata(): Metadata
+    fun metadata(): Metadata
     fun readDir(): ReadDir
     fun components(): List<String>
 

@@ -1,19 +1,19 @@
 package fs
 
 import handleError
-import kotlinx.cinterop.*
-import path.Path
+import kotlinx.cinterop.CValue
+import kotlinx.cinterop.memScoped
+import kotlinx.cinterop.useContents
 import rio.*
-import toCValue
 import kotlin.native.ref.createCleaner
 
-actual class DirEntry private actual constructor() : AutoCloseable {
+actual class Metadata private actual constructor() {
     private var internal: CValue<FFIHandle>? = null
 
     private val cleaner = createCleaner(internal) { handle ->
         handle?.apply {
             memScoped {
-                free_dir_entry(ptr)
+                free_metadata(ptr)
             }
         }
     }
@@ -23,7 +23,7 @@ actual class DirEntry private actual constructor() : AutoCloseable {
     }
 
     actual fun fileType(): FileType = memScoped {
-        dir_entry_file_type(internal!!.ptr).useContents {
+        return metadata_file_type(internal!!.ptr).useContents {
             when (tag) {
                 rio.FFIResult_Tag.Ok -> when (ok.file_type) {
                     FFIFileType.IsDirectory -> FileType.Directory
@@ -39,40 +39,33 @@ actual class DirEntry private actual constructor() : AutoCloseable {
         }
     }
 
-    actual fun path(): Path = memScoped {
-        return dir_entry_path(internal!!.ptr).useContents {
+    actual fun len(): ULong = memScoped {
+        return metadata_len(internal!!.ptr).useContents {
             when (tag) {
-                rio.FFIResult_Tag.Ok -> Path(cValue<FFIHandle> {
-                    this.index = ok.handle.index
-                    this.handle_type = ok.handle.handle_type
-                })
-
+                rio.FFIResult_Tag.Ok -> ok.u_int64
                 rio.FFIResult_Tag.Err -> throw handleError(err.string)
                 else -> throw Exception("Unknown error")
             }
         }
     }
 
-    actual fun metadata(): Metadata = memScoped {
-        return dir_entry_metadata(internal!!.ptr).useContents {
+    actual fun readonly(): Boolean = memScoped {
+        return metadata_readonly(internal!!.ptr).useContents {
             when (tag) {
-                rio.FFIResult_Tag.Ok -> Metadata(ok.handle.toCValue())
+                rio.FFIResult_Tag.Ok -> ok.boolean
                 rio.FFIResult_Tag.Err -> throw handleError(err.string)
                 else -> throw Exception("Unknown error")
             }
         }
     }
 
-    override fun close() {
-        internal?.apply {
-            memScoped {
-                free_dir_entry(ptr)
+    actual fun setReadonly(value: Boolean) = memScoped {
+        metadata_set_readonly(internal!!.ptr, value).useContents {
+            when (tag) {
+                FFIResult_Tag.Ok -> Unit
+                FFIResult_Tag.Err -> throw handleError(err.string)
+                else -> throw Exception("Unknown error")
             }
         }
-        internal = null
-    }
-
-    override fun toString(): String {
-        return "${fileType()} ${path()}"
     }
 }

@@ -1,4 +1,9 @@
 package fs
 
-expect class DirEntry private constructor(): AutoCloseable {
+import path.Path
+
+expect class DirEntry private constructor() : AutoCloseable {
+    fun path(): Path
+    fun fileType(): FileType
+    fun metadata(): Metadata
 }

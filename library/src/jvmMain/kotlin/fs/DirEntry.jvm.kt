@@ -1,4 +1,4 @@
 package fs
 
-actual class DirEntry {
+actual class DirEntry() {
 }

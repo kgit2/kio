@@ -33,13 +33,15 @@ FFIResult metadata_is_symlink(const FFIHandle *handle);
 
 FFIResult metadata_len(const FFIHandle *handle);
 
-FFIResult metadata_read_only(const FFIHandle *handle);
+FFIResult metadata_readonly(const FFIHandle *handle);
 
-FFIResult metadata_set_read_only(const FFIHandle *handle, bool readonly);
+FFIResult metadata_set_readonly(const FFIHandle *handle, bool readonly);
 
 FFIResult metadata_mode(const FFIHandle *handle);
 
 FFIResult metadata_set_mode(const FFIHandle *handle, uint32_t mode);
+
+void free_metadata(const FFIHandle *handle);
 
 FFIResult read_dir_next(const FFIHandle *handle);
 
