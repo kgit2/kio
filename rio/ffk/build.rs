@@ -1,6 +1,7 @@
 fn main() {
     use std::env;
     println!("PROFILE {:?}", env::var("PROFILE"));
+    println!("CARGO_CFG_TARGET_OS {:?}", env::var("CARGO_CFG_TARGET_OS"));
     println!(
         "CARGO_CFG_TARGET_ARCH {:?}",
         env::var("CARGO_CFG_TARGET_ARCH")
@@ -11,9 +12,6 @@ fn main() {
         .with_crate(crate_dir.clone())
         .with_language(cbindgen::Language::C)
         .with_include_guard("FFK_H")
-        // .with_sys_include("stdint.h")
-        // .with_sys_include("stdbool.h")
-        // .with_no_includes()
         .rename_item("bool", "int")
         .generate()
         .expect("Unable to generate bindings")

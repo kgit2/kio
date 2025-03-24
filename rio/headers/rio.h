@@ -23,7 +23,45 @@ FFIResult file_flush(const FFIHandle *file_handle);
 
 void free_file(const FFIHandle *file_handle);
 
-FFIResult read_dir_nth(const FFIHandle *handle, uint64_t n);
+FFIResult metadata_file_type(const FFIHandle *handle);
+
+FFIResult metadata_is_dir(const FFIHandle *handle);
+
+FFIResult metadata_is_file(const FFIHandle *handle);
+
+FFIResult metadata_is_symlink(const FFIHandle *handle);
+
+FFIResult metadata_len(const FFIHandle *handle);
+
+FFIResult metadata_read_only(const FFIHandle *handle);
+
+FFIResult metadata_set_read_only(const FFIHandle *handle, bool readonly);
+
+FFIResult metadata_mode(const FFIHandle *handle);
+
+FFIResult metadata_set_mode(const FFIHandle *handle, uint32_t mode);
+
+FFIResult read_dir_next(const FFIHandle *handle);
+
+FFIResult read_dir_into_list(const FFIHandle *handle,
+                             void (*error_callback)(FFIString, void*),
+                             void *payload);
+
+FFIResult dir_entry_path(const FFIHandle *handle);
+
+FFIResult dir_entry_metadata(const FFIHandle *handle);
+
+FFIResult dir_entry_file_type(const FFIHandle *handle);
+
+FFIResult dir_entry_file_name(const FFIHandle *handle);
+
+uint64_t read_dir_size(void);
+
+uint64_t dir_entry_size(void);
+
+void free_read_dir(const FFIHandle *handle);
+
+void free_dir_entry(const FFIHandle *handle);
 
 FFIResult stderr_init(void);
 
@@ -104,5 +142,7 @@ FFIResult path_metadata(const FFIHandle *handle);
 FFIResult path_read_dir(const FFIHandle *handle);
 
 FFIResult path_components(const FFIHandle *handle);
+
+void free_path(const FFIHandle *handle);
 
 #endif  /* RIO_H */

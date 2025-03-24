@@ -44,27 +44,14 @@ impl FromFFI for FFIString {
         }
     }
 
-    fn into_origin(&mut self) -> Self::OriginOwned {
+    fn into_origin(mut self) -> Self::OriginOwned {
         if self.buffer.is_null() {
             panic!("FFI buffer is null");
         }
-        unsafe { CString::from_raw(self.buffer).to_str().unwrap().to_string() }
-    }
-}
-
-impl FFIString {
-    #[no_mangle]
-    pub extern "C" fn free_ffi_string(&mut self) {
-        if self.buffer.is_null() {
-            return;
-        }
-        drop(self.into_origin());
-    }
-}
-
-impl From<String> for FFIString {
-    fn from(value: String) -> Self {
-        value.into_ffi()
+        let buffer = unsafe { CString::from_raw(self.buffer).to_str().unwrap().to_string() };
+        self.buffer = std::ptr::null_mut();
+        self.len = 0;
+        buffer
     }
 }
 
@@ -80,10 +67,24 @@ impl IntoFFIValue for String {
     }
 }
 
+impl FFIString {
+    /// # Safety
+    #[no_mangle]
+    pub unsafe extern "C" fn free_ffi_string(self) {
+        if self.buffer.is_null() {
+            return;
+        }
+        drop(self);
+    }
+}
+
 impl Drop for FFIString {
     fn drop(&mut self) {
-        if !self.buffer.is_null() {
-            unsafe { drop(CString::from_raw(self.buffer)) }
+        if self.buffer.is_null() {
+            return;
         }
+        drop(unsafe { CString::from_raw(self.buffer) });
+        self.buffer = std::ptr::null_mut();
+        self.len = 0;
     }
 }

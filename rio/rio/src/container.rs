@@ -21,6 +21,10 @@ impl<T> HandleContainer<T> {
         }
     }
 
+    pub fn size(&self) -> usize {
+        self.container.len()
+    }
+
     pub fn create_handle<F>(&self, value: T, handle_type: F) -> FFIHandle
     where
         F: FnOnce(u64) -> FFIHandle,
@@ -30,8 +34,12 @@ impl<T> HandleContainer<T> {
         handle_type(index)
     }
 
+    pub fn remove_handle(&self, handle: &FFIHandle) -> Option<(u64, T)> {
+        self.container.remove(&handle.index)
+    }
+
     pub fn free_handle(&self, handle: &FFIHandle) {
-        self.container.remove(&handle.index);
+        self.remove_handle(handle);
     }
 
     #[allow(unused)]

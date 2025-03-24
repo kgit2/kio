@@ -6,6 +6,13 @@
 #include <stdint.h>
 #include <stdlib.h>
 
+typedef enum FFIFileType {
+  IsFile,
+  IsDirectory,
+  IsSymlink,
+  Other,
+} FFIFileType;
+
 typedef enum FFIHandleType {
   Stdin,
   Stdout,
@@ -57,6 +64,8 @@ typedef enum FFIValue_Tag {
   Bytes,
   Handle,
   Vec,
+  FileType,
+  Error,
   Unit,
 } FFIValue_Tag;
 
@@ -114,6 +123,12 @@ typedef struct FFIValue {
     struct {
       struct FFIVec vec;
     };
+    struct {
+      enum FFIFileType file_type;
+    };
+    struct {
+      struct FFIString error;
+    };
   };
 } FFIValue;
 
@@ -143,10 +158,19 @@ struct FFIValue result_unwrap(struct FFIResult self);
 
 struct FFIValue unwrap_err(struct FFIResult self);
 
-void free_ffi_bytes(struct FFIBytes *self);
+/**
+ * # Safety
+ */
+void free_ffi_bytes(struct FFIBytes self);
 
-void free_ffi_string(struct FFIString *self);
+/**
+ * # Safety
+ */
+void free_ffi_string(struct FFIString self);
 
-void free_ffi_vec(struct FFIVec *self);
+/**
+ * # Safety
+ */
+void free_ffi_vec(struct FFIVec self);
 
 #endif  /* FFK_H */

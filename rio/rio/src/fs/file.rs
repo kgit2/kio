@@ -1,6 +1,6 @@
 use crate::container::HandleContainer;
-use crate::io::ffi_read::{read, read_to_end};
-use crate::io::ffi_write::{flush, write, write_all};
+use ffk::ffi_io::ffi_read::{read, read_to_end};
+use ffk::ffi_io::ffi_write::{flush, write, write_all};
 use ffk::ffi_convertor::FromFFI;
 use ffk::ffi_handle::FFIHandle;
 use ffk::ffi_result::FFIResult;

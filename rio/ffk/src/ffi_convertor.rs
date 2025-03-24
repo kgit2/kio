@@ -13,5 +13,5 @@ pub trait FromFFI {
     fn as_origin_mut(&mut self) -> &mut Self::OriginRef;
 
     // 所有权转移转换
-    fn into_origin(&mut self) -> Self::OriginOwned;
+    fn into_origin(self) -> Self::OriginOwned;
 }

@@ -1,4 +1,4 @@
-use crate::ffi_value::FFIValue;
+use crate::ffi_value::{FFIValue, IntoFFIValue};
 
 #[repr(C)]
 #[derive(Debug, Clone)]
@@ -65,6 +65,12 @@ impl FFIHandle {
     }
 }
 
+impl IntoFFIValue for FFIHandle {
+    fn into_ffi_value(self) -> FFIValue {
+        FFIValue::Handle(self)
+    }
+}
+
 #[repr(C)]
 #[derive(Debug, Clone)]
 pub enum FFIHandleType {
@@ -76,10 +82,4 @@ pub enum FFIHandleType {
     Metadata,
     ReadDir,
     DirEntry,
-}
-
-impl From<FFIHandle> for FFIValue {
-    fn from(value: FFIHandle) -> Self {
-        FFIValue::Handle(value)
-    }
 }

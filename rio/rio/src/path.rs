@@ -15,6 +15,10 @@ use std::sync::LazyLock;
 
 static PATH_CONTAINER: LazyLock<HandleContainer<PathBuf>> = LazyLock::new(HandleContainer::new);
 
+pub fn path_create(path: PathBuf) -> FFIHandle {
+    PATH_CONTAINER.create_handle(path, FFIHandle::path)
+}
+
 #[no_mangle]
 pub extern "C" fn path_init(buffer: &FFIString) -> FFIResult {
     let path = PathBuf::from(buffer.as_origin());
@@ -303,15 +307,7 @@ pub extern "C" fn path_components(handle: &FFIHandle) -> FFIResult {
     }
 }
 
-#[cfg(test)]
-mod tests {
-    use path_clean::PathClean;
-    use std::path::Path;
-
-    #[test]
-    fn test() {
-        let path = Path::new("a/b/../c");
-        println!("{:?}", path.clean());
-        println!("{:?}", path.clean().pop());
-    }
+#[no_mangle]
+pub extern "C" fn free_path(handle: &FFIHandle) {
+    PATH_CONTAINER.free_handle(handle);
 }

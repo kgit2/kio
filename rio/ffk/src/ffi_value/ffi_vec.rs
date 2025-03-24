@@ -47,11 +47,15 @@ impl FromFFI for FFIVec {
         unsafe { std::slice::from_raw_parts_mut(self.items, self.len) }
     }
 
-    fn into_origin(&mut self) -> Self::OriginOwned {
+    fn into_origin(mut self) -> Self::OriginOwned {
         if self.items.is_null() {
             panic!("FFI buffer is null");
         }
-        unsafe { Vec::from_raw_parts(self.items, self.len, self.capacity) }
+        let items = unsafe { Vec::from_raw_parts(self.items, self.len, self.capacity) };
+        self.items = std::ptr::null_mut();
+        self.len = 0;
+        self.capacity = 0;
+        items
     }
 }
 
@@ -62,19 +66,24 @@ impl<T: IntoFFIValue> IntoFFIValue for Vec<T> {
 }
 
 impl FFIVec {
+    /// # Safety
     #[no_mangle]
-    pub extern "C" fn free_ffi_vec(&mut self) {
+    pub unsafe extern "C" fn free_ffi_vec(self) {
         if self.items.is_null() {
             return;
         }
-        drop(self.into_origin());
+        drop(self);
     }
 }
 
 impl Drop for FFIVec {
     fn drop(&mut self) {
-        if !self.items.is_null() {
-            unsafe { drop(Vec::from_raw_parts(self.items, self.len, self.capacity)) }
+        if self.items.is_null() {
+            return;
         }
+        drop(unsafe { Vec::from_raw_parts(self.items, self.len, self.capacity) });
+        self.items = std::ptr::null_mut();
+        self.len = 0;
+        self.capacity = 0;
     }
 }

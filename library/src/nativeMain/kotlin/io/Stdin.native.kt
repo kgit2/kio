@@ -7,19 +7,24 @@ import rio.FFIResult_Tag.*
 import kotlin.native.ref.createCleaner
 
 actual object Stdin : Read {
-    private val internal: Lazy<CValue<FFIHandle>> = lazy {
+    private var internal: Lazy<CValue<FFIHandle>> = lazy {
         stdin_init().useContents {
-            val handle = ok.handle
-            return@lazy cValue<FFIHandle> {
-                index = handle.index
-                handle_type = handle.handle_type
+            when (tag) {
+                Ok -> cValue<FFIHandle> {
+                    this.index = ok.handle.index
+                    this.handle_type = ok.handle.handle_type
+                }
+                Err -> throw handleError(err.string)
+                else -> throw Exception("Unknown error")
             }
         }
     }
 
     val cleaner = createCleaner(internal) { handle ->
         if (handle.isInitialized()) {
-            free_stdin(handle.value)
+            memScoped {
+                free_stdin(handle.value.ptr)
+            }
         }
     }
 

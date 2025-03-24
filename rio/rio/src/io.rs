@@ -1,5 +1,3 @@
-pub mod ffi_read;
-pub mod ffi_write;
 pub mod stderr;
 pub mod stdin;
 pub mod stdout;

@@ -1,3 +1,5 @@
+import fs.dirEntrySize
+import fs.readDirSize
 import path.Path
 
 //fun main() {
@@ -12,17 +14,15 @@ import path.Path
 //}
 
 fun main() {
-    val path = Path("/Users/bppleman/a")
-    path.setFileName("stats_user_wes_kit_keep")
-    path.setExtension("html")
-//    println(path)
-//    val clone = path.clone()
-////    clone.setFileName("CLionProjects")
-//    println(clone.toString())
-//    println(path == clone)
-//    println(path === clone)
-//     println(path.fileName())
-//     println(path.extension())
-//     println(path.parent())
-//     println()
+    for (i in 0..< 40) {
+        val path = Path.cwd()
+        val readDir = path.readDir()
+        readDir.use {
+            while (readDir.hasNext()) {
+                readDir.next()
+            }
+        }
+    }
+    println(readDirSize())
+    println(dirEntrySize())
 }

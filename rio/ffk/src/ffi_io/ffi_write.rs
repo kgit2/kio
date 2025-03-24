@@ -1,6 +1,6 @@
-use ffk::ffi_result::FFIResult;
-use ffk::ffi_value::ffi_bytes::FFIBytes;
-use ffk::ffi_value::FFIValue;
+use crate::ffi_result::FFIResult;
+use crate::ffi_value::ffi_bytes::FFIBytes;
+use crate::ffi_value::FFIValue;
 use std::io::Write;
 
 pub fn write<W: Write>(writer: &mut W, buffer: &FFIBytes) -> FFIResult {

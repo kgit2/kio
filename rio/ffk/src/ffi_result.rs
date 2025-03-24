@@ -57,9 +57,3 @@ impl FFIResult {
         }
     }
 }
-
-// impl IntoFFIValue for FFIResult {
-//     fn into_ffi_value(self) -> FFIValue {
-//         FFIValue::Result(Box::into_raw(Box::new(self)))
-//     }
-// }

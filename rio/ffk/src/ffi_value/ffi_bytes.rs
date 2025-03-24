@@ -50,7 +50,7 @@ impl FromFFI for FFIBytes {
         unsafe { std::slice::from_raw_parts_mut(self.buffer, self.len) }
     }
 
-    fn into_origin(&mut self) -> Self::OriginOwned {
+    fn into_origin(self) -> Self::OriginOwned {
         if self.buffer.is_null() {
             panic!("FFI buffer is null");
         }
@@ -59,12 +59,13 @@ impl FromFFI for FFIBytes {
 }
 
 impl FFIBytes {
+    /// # Safety
     #[no_mangle]
-    pub extern "C" fn free_ffi_bytes(&mut self) {
+    pub unsafe extern "C" fn free_ffi_bytes(self) {
         if self.buffer.is_null() {
             return;
         }
-        drop(self.into_origin());
+        drop(self);
     }
 }
 
@@ -82,8 +83,12 @@ impl IntoFFIValue for Vec<u8> {
 
 impl Drop for FFIBytes {
     fn drop(&mut self) {
-        if !self.buffer.is_null() {
-            unsafe { drop(Vec::from_raw_parts(self.buffer, self.len, self.capacity)) }
+        if self.buffer.is_null() {
+            return;
         }
+        drop(unsafe { Vec::from_raw_parts(self.buffer, self.len, self.capacity) });
+        self.buffer = std::ptr::null_mut();
+        self.len = 0;
+        self.capacity = 0;
     }
 }

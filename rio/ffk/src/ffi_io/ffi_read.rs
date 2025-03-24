@@ -1,6 +1,6 @@
-use ffk::ffi_result::FFIResult;
-use ffk::ffi_value::ffi_bytes::FFIBytes;
-use ffk::ffi_value::IntoFFIValue;
+use crate::ffi_result::FFIResult;
+use crate::ffi_value::ffi_bytes::FFIBytes;
+use crate::ffi_value::IntoFFIValue;
 use std::io::Read;
 
 pub fn read<R: Read>(reader: &mut R, buffer: &mut FFIBytes) -> FFIResult {

@@ -1,5 +1,7 @@
 package path
 
+import fs.ReadDir
+
 expect class Path(value: String): Comparable<Path> {
     companion object {
         fun cwd(): Path
@@ -23,7 +25,7 @@ expect class Path(value: String): Comparable<Path> {
     fun isDirectory(): Boolean
 
     // fun metadata(): Metadata
-    // fun readDir(): List<Path>
+    fun readDir(): ReadDir
     fun components(): List<String>
 
     fun clear()

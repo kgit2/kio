@@ -1,10 +1,12 @@
 pub mod ffi_bytes;
+pub mod ffi_file_type;
 pub mod ffi_string;
 pub mod ffi_vec;
 
 use crate::ffi_handle::FFIHandle;
 use crate::ffi_value;
 use crate::ffi_value::ffi_bytes::FFIBytes;
+use crate::ffi_value::ffi_file_type::FFIFileType;
 use crate::ffi_value::ffi_string::FFIString;
 use crate::ffi_value::ffi_vec::FFIVec;
 
@@ -32,8 +34,8 @@ pub enum FFIValue {
     Bytes(FFIBytes),
     Handle(FFIHandle),
     Vec(FFIVec),
-    // Result(*mut FFIResult),
-    // Option(*mut FFIOption),
+    FileType(FFIFileType),
+    Error(FFIString),
     Unit,
 }
 
@@ -52,11 +54,17 @@ ffi_value! {
         Float(f32, to_float),
         Double(f64, to_double),
         Boolean(bool, to_boolean),
+        String(FFIString, to_string),
+        Bytes(FFIBytes, to_bytes),
+        Handle(FFIHandle, to_handle),
+        Vec(FFIVec, to_vec),
+        FileType(FFIFileType, to_file_type),
     }
     Exclude {
         String(FFIString, to_string),
         Bytes(FFIBytes, to_bytes),
         Vec(FFIVec, to_vec),
+        Error(FFIString, to_error),
         Unit((), to_unit),
     }
 }

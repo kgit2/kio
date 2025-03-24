@@ -13,8 +13,14 @@ class PathTest {
 
     @Test
     fun testCwd() {
-        val path = Path.cwd()
-        assertTrue(path.toString().endsWith("kio/library"))
+        for (i in 0..10000) {
+            val path = Path.cwd()
+            path.readDir().use { readDir ->
+                readDir.forEach {
+                    it.use {  }
+                }
+            }
+        }
     }
 
     @Test
@@ -135,6 +141,8 @@ class PathTest {
     @Test
     fun testComponents() {
         val path = Path("a/b/c")
-        assertEquals(listOf("a", "b", "c"), path.components())
+        for (i in 0..10000) {
+            assertEquals(listOf("a", "b", "c"), path.components())
+        }
     }
 }

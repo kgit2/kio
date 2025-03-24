@@ -1,40 +1,31 @@
 package path
 
+import fs.ReadDir
 import handleError
-import kotlinx.cinterop.*
+import kotlinx.cinterop.CValue
+import kotlinx.cinterop.convert
+import kotlinx.cinterop.memScoped
+import kotlinx.cinterop.useContents
 import rio.*
+import toCValue
+import toFFIString
 import toKString
 import toStringList
 
 actual class Path(
-    private val internal: CValue<FFIHandle>,
+    val internal: CValue<FFIHandle>,
 ) : Comparable<Path> {
 
     actual constructor(value: String) : this(memScoped {
-        val cValue = cValue<FFIString> {
-            buffer = value.cstr.ptr
-            len = value.length.convert()
-        }
-        path_init(cValue).useContents {
-            cValue {
-                this.index = ok.handle.index
-                this.handle_type = ok.handle.handle_type
-            }
-        }
+        path_init(value.toFFIString(this))
+            .useContents { ok.handle.toCValue() }
     })
 
     actual companion object {
         actual fun cwd(): Path {
             return path_cwd().useContents {
                 when (tag) {
-                    FFIResult_Tag.Ok -> {
-                        val cwdInternal = cValue<FFIHandle> {
-                            this.index = ok.handle.index
-                            this.handle_type = ok.handle.handle_type
-                        }
-                        Path(cwdInternal)
-                    }
-
+                    FFIResult_Tag.Ok -> Path(ok.handle.toCValue())
                     FFIResult_Tag.Err -> throw handleError(err.string)
                     else -> throw Exception("Unknown error")
                 }
@@ -43,11 +34,7 @@ actual class Path(
     }
 
     actual fun push(value: String) = memScoped {
-        val cValue = cValue<FFIString> {
-            buffer = value.cstr.ptr
-            len = value.length.convert()
-        }
-        path_push(internal, cValue).useContents {
+        path_push(internal.ptr, value.toFFIString(this)).useContents {
             when (tag) {
                 FFIResult_Tag.Ok -> Unit
                 FFIResult_Tag.Err -> throw handleError(err.string)
@@ -56,8 +43,8 @@ actual class Path(
         }
     }
 
-    actual fun pop(): Boolean {
-        return path_pop(internal).useContents {
+    actual fun pop(): Boolean = memScoped {
+        return path_pop(internal.ptr).useContents {
             when (tag) {
                 FFIResult_Tag.Ok -> ok.boolean
                 FFIResult_Tag.None -> throw NullPointerException()
@@ -67,8 +54,8 @@ actual class Path(
         }
     }
 
-    actual fun fileName(): String {
-        return path_file_name(internal).useContents {
+    actual fun fileName(): String = memScoped {
+        return path_file_name(internal.ptr).useContents {
             when (tag) {
                 FFIResult_Tag.Ok -> ok.string.toKString()
                 FFIResult_Tag.None -> throw NullPointerException()
@@ -78,8 +65,8 @@ actual class Path(
         }
     }
 
-    actual fun extension(): String {
-        return path_extension(internal).useContents {
+    actual fun extension(): String = memScoped {
+        return path_extension(internal.ptr).useContents {
             when (tag) {
                 FFIResult_Tag.Ok -> ok.string.toKString()
                 FFIResult_Tag.None -> throw NullPointerException()
@@ -90,16 +77,9 @@ actual class Path(
     }
 
     actual fun parent(): Path = memScoped {
-        return path_parent(internal).useContents {
+        return path_parent(internal.ptr).useContents {
             when (tag) {
-                FFIResult_Tag.Ok -> {
-                    val parentInternal = cValue<FFIHandle> {
-                        this.index = ok.handle.index
-                        this.handle_type = ok.handle.handle_type
-                    }
-                    Path(parentInternal)
-                }
-
+                FFIResult_Tag.Ok -> Path(ok.handle.toCValue())
                 FFIResult_Tag.None -> throw NullPointerException()
                 FFIResult_Tag.Err -> throw handleError(err.string)
                 else -> throw Exception("Unknown error")
@@ -108,79 +88,49 @@ actual class Path(
     }
 
     actual fun setFileName(name: String) = memScoped {
-        val cValue = cValue<FFIString> {
-            buffer = name.cstr.ptr
-            len = name.length.convert()
-        }
-        path_set_file_name(internal, cValue).useContents {
-            when (tag) {
-                FFIResult_Tag.Ok -> Unit
-                FFIResult_Tag.Err -> throw handleError(err.string)
-                else -> throw Exception("Unknown error")
+        path_set_file_name(internal.ptr, name.toFFIString(this))
+            .useContents {
+                when (tag) {
+                    FFIResult_Tag.Ok -> Unit
+                    FFIResult_Tag.Err -> throw handleError(err.string)
+                    else -> throw Exception("Unknown error")
+                }
             }
-        }
     }
 
     actual fun setExtension(extension: String) = memScoped {
-        val cValue = cValue<FFIString> {
-            buffer = extension.cstr.ptr
-            len = extension.length.convert()
-        }
-        path_set_extension(internal, cValue).useContents {
-            when (tag) {
-                FFIResult_Tag.Ok -> Unit
-                FFIResult_Tag.Err -> throw handleError(err.string)
-                else -> throw Exception("Unknown error")
-            }
-        }
-    }
-
-    actual fun normalize(): Path {
-        return path_normalize(internal).useContents {
-            when (tag) {
-                FFIResult_Tag.Ok -> {
-                    val normalizedInternal = cValue<FFIHandle> {
-                        this.index = ok.handle.index
-                        this.handle_type = ok.handle.handle_type
-                    }
-                    Path(normalizedInternal)
+        path_set_extension(internal.ptr, extension.toFFIString(this))
+            .useContents {
+                when (tag) {
+                    FFIResult_Tag.Ok -> Unit
+                    FFIResult_Tag.Err -> throw handleError(err.string)
+                    else -> throw Exception("Unknown error")
                 }
-
-                FFIResult_Tag.Err -> throw handleError(err.string)
-                else -> throw Exception("Unknown error")
             }
-        }
     }
 
-    actual fun canonicalize(): Path {
-        return path_canonicalize(internal).useContents {
+    actual fun normalize(): Path = memScoped {
+        return path_normalize(internal.ptr).useContents {
             when (tag) {
-                FFIResult_Tag.Ok -> {
-                    val canonicalizedInternal = cValue<FFIHandle> {
-                        this.index = ok.handle.index
-                        this.handle_type = ok.handle.handle_type
-                    }
-                    Path(canonicalizedInternal)
-                }
-
+                FFIResult_Tag.Ok -> Path(ok.handle.toCValue())
                 FFIResult_Tag.Err -> throw handleError(err.string)
                 else -> throw Exception("Unknown error")
             }
         }
     }
 
-    actual fun isAbsolute(): Boolean {
-        return path_is_absolute(internal).useContents {
+    actual fun canonicalize(): Path = memScoped {
+        return path_canonicalize(internal.ptr).useContents {
             when (tag) {
-                FFIResult_Tag.Ok -> ok.boolean
+                FFIResult_Tag.Ok -> Path(ok.handle.toCValue())
                 FFIResult_Tag.Err -> throw handleError(err.string)
                 else -> throw Exception("Unknown error")
             }
         }
     }
 
-    actual fun isRelative(): Boolean {
-        return path_is_relative(internal).useContents {
+    actual fun isAbsolute(): Boolean = memScoped {
+        return path_is_absolute(internal.ptr).useContents {
             when (tag) {
                 FFIResult_Tag.Ok -> ok.boolean
                 FFIResult_Tag.Err -> throw handleError(err.string)
@@ -189,8 +139,8 @@ actual class Path(
         }
     }
 
-    actual fun exists(): Boolean {
-        return path_exists(internal).useContents {
+    actual fun isRelative(): Boolean = memScoped {
+        return path_is_relative(internal.ptr).useContents {
             when (tag) {
                 FFIResult_Tag.Ok -> ok.boolean
                 FFIResult_Tag.Err -> throw handleError(err.string)
@@ -199,8 +149,8 @@ actual class Path(
         }
     }
 
-    actual fun isFile(): Boolean {
-        return path_is_file(internal).useContents {
+    actual fun exists(): Boolean = memScoped {
+        return path_exists(internal.ptr).useContents {
             when (tag) {
                 FFIResult_Tag.Ok -> ok.boolean
                 FFIResult_Tag.Err -> throw handleError(err.string)
@@ -209,8 +159,8 @@ actual class Path(
         }
     }
 
-    actual fun isDirectory(): Boolean {
-        return path_is_dir(internal).useContents {
+    actual fun isFile(): Boolean = memScoped {
+        return path_is_file(internal.ptr).useContents {
             when (tag) {
                 FFIResult_Tag.Ok -> ok.boolean
                 FFIResult_Tag.Err -> throw handleError(err.string)
@@ -219,8 +169,29 @@ actual class Path(
         }
     }
 
-    actual fun components(): List<String> {
-        return path_components(internal).useContents {
+    actual fun isDirectory(): Boolean = memScoped {
+        return path_is_dir(internal.ptr).useContents {
+            when (tag) {
+                FFIResult_Tag.Ok -> ok.boolean
+                FFIResult_Tag.Err -> throw handleError(err.string)
+                else -> throw Exception("Unknown error")
+            }
+        }
+    }
+
+    actual fun readDir(): ReadDir = memScoped {
+        return path_read_dir(internal.ptr).useContents {
+            when (tag) {
+                FFIResult_Tag.Ok -> ReadDir(ok.handle.toCValue())
+                FFIResult_Tag.None -> throw NullPointerException()
+                FFIResult_Tag.Err -> throw handleError(err.string)
+                else -> throw Exception("Unknown error")
+            }
+        }
+    }
+
+    actual fun components(): List<String> = memScoped {
+        return path_components(internal.ptr).useContents {
             when (tag) {
                 FFIResult_Tag.Ok -> ok.vec.toStringList()
                 FFIResult_Tag.None -> throw NullPointerException()
@@ -230,8 +201,8 @@ actual class Path(
         }
     }
 
-    actual fun clear() {
-        path_clear(internal).useContents {
+    actual fun clear() = memScoped {
+        path_clear(internal.ptr).useContents {
             when (tag) {
                 FFIResult_Tag.Ok -> Unit
                 FFIResult_Tag.Err -> throw handleError(err.string)
@@ -241,16 +212,9 @@ actual class Path(
     }
 
     actual fun clone(): Path = memScoped {
-        return path_clone(internal).useContents {
+        return path_clone(internal.ptr).useContents {
             when (tag) {
-                FFIResult_Tag.Ok -> {
-                    val clonedInternal = cValue<FFIHandle> {
-                        this.index = ok.handle.index
-                        this.handle_type = ok.handle.handle_type
-                    }
-                    Path(clonedInternal)
-                }
-
+                FFIResult_Tag.Ok -> Path(ok.handle.toCValue())
                 FFIResult_Tag.None -> throw NullPointerException()
                 FFIResult_Tag.Err -> throw handleError(err.string)
                 else -> throw Exception("Unknown error")
@@ -258,8 +222,8 @@ actual class Path(
         }
     }
 
-    actual fun toStringLossy(): String {
-        return path_to_string_lossy(internal).useContents {
+    actual fun toStringLossy(): String = memScoped {
+        return path_to_string_lossy(internal.ptr).useContents {
             when (tag) {
                 FFIResult_Tag.Ok -> ok.string.toKString()
                 FFIResult_Tag.None -> throw NullPointerException()
@@ -269,8 +233,8 @@ actual class Path(
         }
     }
 
-    override fun toString(): String {
-        return path_to_string(internal).useContents {
+    override fun toString(): String = memScoped {
+        return path_to_string(internal.ptr).useContents {
             when (tag) {
                 FFIResult_Tag.Ok -> ok.string.toKString()
                 FFIResult_Tag.None -> throw NullPointerException()
@@ -280,8 +244,8 @@ actual class Path(
         }
     }
 
-    override fun compareTo(other: Path): Int {
-        return path_compare(internal, other.internal).useContents {
+    override fun compareTo(other: Path): Int = memScoped {
+        return path_compare(internal.ptr, other.internal.ptr).useContents {
             when (tag) {
                 FFIResult_Tag.Ok -> ok.int32.convert()
                 FFIResult_Tag.Err -> throw handleError(err.string)
@@ -290,11 +254,11 @@ actual class Path(
         }
     }
 
-    override fun equals(other: Any?): Boolean {
+    override fun equals(other: Any?): Boolean = memScoped {
         if (this === other) return true
         if (other !is Path) return false
 
-        return path_eq(internal, other.internal).useContents {
+        return path_eq(internal.ptr, other.internal.ptr).useContents {
             when (tag) {
                 FFIResult_Tag.Ok -> ok.boolean
                 FFIResult_Tag.Err -> throw handleError(err.string)
@@ -303,8 +267,8 @@ actual class Path(
         }
     }
 
-    override fun hashCode(): Int {
-        return path_hash(internal).useContents {
+    override fun hashCode(): Int = memScoped {
+        return path_hash(internal.ptr).useContents {
             when (tag) {
                 FFIResult_Tag.Ok -> ok.u_size.convert()
                 FFIResult_Tag.Err -> throw handleError(err.string)

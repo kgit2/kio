@@ -8,4 +8,3 @@ homepage.workspace = true
 
 [dependencies]
 rio = { path = "../rio" }
-ffk.workspace = true
