@@ -25,14 +25,7 @@ actual class DirEntry private actual constructor() : AutoCloseable {
     actual fun fileType(): FileType = memScoped {
         dir_entry_file_type(internal!!.ptr).useContents {
             when (tag) {
-                rio.FFIResult_Tag.Ok -> when (ok.file_type) {
-                    FFIFileType.IsDirectory -> FileType.Directory
-                    FFIFileType.IsFile -> FileType.File
-                    FFIFileType.IsSymlink -> FileType.Symlink
-                    FFIFileType.Other -> FileType.Other
-                    else -> throw Exception("Unknown file type")
-                }
-
+                rio.FFIResult_Tag.Ok -> ok.file_type.toFileType()
                 rio.FFIResult_Tag.Err -> throw handleError(err.string)
                 else -> throw Exception("Unknown error")
             }

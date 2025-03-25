@@ -1,5 +1,7 @@
 package fs
 
+import rio.FFIFileType
+
 actual enum class FileType {
     Directory,
     File,
@@ -14,5 +16,15 @@ actual enum class FileType {
             Symlink -> "[S]"
             Other -> "[O]"
         }
+    }
+}
+
+fun FFIFileType.toFileType(): FileType {
+    return when (this) {
+        FFIFileType.IsDirectory -> FileType.Directory
+        FFIFileType.IsFile -> FileType.File
+        FFIFileType.IsSymlink -> FileType.Symlink
+        FFIFileType.Other -> FileType.Other
+        else -> throw Exception("Unknown file type")
     }
 }
