@@ -8,6 +8,7 @@ use ffk::ffi_value::ffi_bytes::FFIBytes;
 use ffk::ffi_value::ffi_string::FFIString;
 use ffk::ffi_value::{FFIValue, IntoFFIValue};
 use std::fs::File;
+use std::io::{BufReader, BufWriter};
 use std::ops::DerefMut;
 use std::sync::LazyLock;
 
@@ -26,6 +27,7 @@ pub fn return_file_ffi_result(file: Result<File, std::io::Error>) -> FFIResult {
 #[no_mangle]
 pub extern "C" fn file_open(path: &FFIString) -> FFIResult {
     let path = path.as_origin();
+    BufWriter::new()
     return_file_ffi_result(File::open(path))
 }
 

@@ -1,5 +1,7 @@
 import fs.dirEntrySize
 import fs.readDirSize
+import io.BufferedReader
+import memory.MemoryBuffer
 import path.Path
 
 //fun main() {
@@ -14,15 +16,32 @@ import path.Path
 //}
 
 fun main() {
-    for (i in 0..< 40) {
-        val path = Path.cwd()
-        val readDir = path.readDir()
-        readDir.use {
-            while (readDir.hasNext()) {
-                readDir.next().use {  }
-            }
-        }
-    }
-    println(readDirSize())
-    println(dirEntrySize())
+    val memoryBuffer = MemoryBuffer()
+    val bufferedReader = BufferedReader(memoryBuffer)
+    val data = "This is a test buffer.".encodeToByteArray()
+    val buf = ByteArray(8)
+
+    // Write data to MemoryBuffer
+    memoryBuffer.write(data, data.size)
+
+    // Read data in chunks
+    val read1 = bufferedReader.read(buf, buf.size).getOrThrow()
+    println("Read $read1 bytes: ${buf.decodeToString()}")
+    // assertEquals(8, read1)
+    // assertEquals("This is ", buf.decodeToString())
+
+    val read2 = bufferedReader.read(buf, buf.size).getOrThrow()
+    println("Read $read2 bytes: ${buf.decodeToString()}")
+    // assertEquals(8, read2)
+    // assertEquals("a test b", buf.decodeToString())
+
+    val read3 = bufferedReader.read(buf, buf.size).getOrThrow()
+    println("Read $read3 bytes: ${buf.decodeToString(0, read3)}")
+    // assertEquals(6, read3)
+    // assertEquals("uffer.", buf.decodeToString(0, read3))
+
+    // EOF should return 0 bytes read
+    val read4 = bufferedReader.read(buf, buf.size).getOrThrow()
+    println("Read $read4 bytes: ${buf.decodeToString(0, 8)}")
+    // assertEquals(0, read4)
 }

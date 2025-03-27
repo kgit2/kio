@@ -141,8 +141,6 @@ class PathTest {
     @Test
     fun testComponents() {
         val path = Path("a/b/c")
-        for (i in 0..10000) {
-            assertEquals(listOf("a", "b", "c"), path.components())
-        }
+        assertEquals(listOf("a", "b", "c"), path.components())
     }
 }

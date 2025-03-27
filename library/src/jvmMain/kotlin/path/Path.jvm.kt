@@ -1,7 +1,11 @@
 package path
 
+import java.io.BufferedReader
+import java.io.BufferedWriter
+
 actual class Path(value: String) {
     actual fun push(value: String) {
+        BufferedWriter()
     }
 
     actual fun pop(): String {
