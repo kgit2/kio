@@ -28,7 +28,7 @@ actual object Stdin : Read {
         }
     }
 
-    override fun read(buf: ByteArray, len: Int): Result<Int> = memScoped {
+    override fun read(buf: ByteArray, offset: Int, len: Int): Result<Int> = memScoped {
         if (buf.isEmpty()) {
             return Result.failure(Exception("buf is empty"))
         }
@@ -39,7 +39,7 @@ actual object Stdin : Read {
 
         // 获取 ByteArray 指针
         val buffer = cValue<FFIBytes> {
-            buffer = buf.asUByteArray().refTo(0).getPointer(this@memScoped)
+            buffer = buf.asUByteArray().refTo(offset).getPointer(this@memScoped)
             this.len = len.convert()
             this.capacity = buf.size.convert()
         }
@@ -55,18 +55,16 @@ actual object Stdin : Read {
         }
     }
 
-    override fun readToEnd(buf: MutableList<UByte>): Result<Int> = memScoped {
+    override fun readToEnd(buf: MutableList<UByte>, offset: Int): Result<Int> = memScoped {
         val result = stdin_read_to_end(internal.value.ptr)
         return result.useContents {
             when (tag) {
                 Ok -> {
                     val size: Int = ok.bytes.len.convert()
                     val data = ok.bytes.buffer
-                    for (i in 0 until size) {
-                        data?.get(i)?.toUByte()?.let {
-                            buf.add(it)
-                        }
-                    }
+                    buf.addAll(offset, List(size) {
+                        data?.get(it)?.toUByte()
+                    }.filterNotNull())
                     val bytes = cValue<FFIBytes> {
                         buffer = ok.bytes.buffer
                         len = ok.bytes.len

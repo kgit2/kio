@@ -1,8 +1,5 @@
-import fs.dirEntrySize
-import fs.readDirSize
 import io.BufferedReader
 import memory.MemoryBuffer
-import path.Path
 
 //fun main() {
 //    val buf = ByteArray(1024)
@@ -22,7 +19,7 @@ fun main() {
     val buf = ByteArray(8)
 
     // Write data to MemoryBuffer
-    memoryBuffer.write(data, data.size)
+    memoryBuffer.write(data,, data.size)
 
     // Read data in chunks
     val read1 = bufferedReader.read(buf, buf.size).getOrThrow()

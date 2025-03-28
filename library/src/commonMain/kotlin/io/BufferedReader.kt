@@ -1,59 +1,46 @@
 package io
 
-class BufferedReader<T: Read>(
+class BufferedReader<T : Read>(
     private val source: T,
-    private val bufferSize: Int = 8192
+    private val bufferSize: Int = 8192,
 ) : Read {
     private val buffer = ByteArray(bufferSize)
-    private var fillPos = 0    // 下一个未读字节的位置
-    private var limit = 0      // buffer 中当前有效数据的末尾位置
+    private var readPos = 0
+    private var writePos = 0
     private var eof = false    // 是否已经到达 EOF
 
-    override fun read(buf: ByteArray, len: Int): Result<Int> {
+    override fun read(buf: ByteArray, offset: Int, len: Int): Result<Int> {
         if (len < 0 || buf.size < len) {
             return Result.failure(IllegalArgumentException("Invalid length or buffer size"))
         }
         if (len == 0) return Result.success(0)
-        var bytesRead = 0
 
-        // 1. 优先从内部缓冲区读取数据
-        if (fillPos < limit) {
-            val toCopy = minOf(len, limit - fillPos)
-            buffer.copyInto(buf, 0, fillPos, fillPos + toCopy)
-            fillPos += toCopy
-            bytesRead += toCopy
-            if (bytesRead >= len) return Result.success(bytesRead)
-        }
+        var bufOffset = offset
+        var bufNeed = len
+        var available = writePos - readPos
 
-        // 2. 如果内部缓冲区已空，尝试从 source 填充新数据
-        while (bytesRead < len) {
-            if (eof) return Result.success(bytesRead)
-
-            // 2.1 先将数据读取到内部缓冲区
-            fillPos = 0
-            val result = source.read(buffer, buffer.size) // 调用 source.read(buf, len)
-            if (result.isFailure) return result
-            val n = result.getOrThrow()
-
-            if (n == 0) {
-                eof = true
-                limit = 0 // 关键修复：重置 limit 避免后续误判
-                return Result.success(bytesRead)
+        while (true) {
+            if (bufNeed <= available) {
+                buffer.copyInto(buf, bufOffset, readPos, readPos + bufNeed)
+                readPos += bufNeed
+                break
+            } else {
+                val toRead = bufNeed - available
+                val result = source.read(buffer, writePos, toRead)
+                if (result.isFailure) return result
+                val bytesRead = result.getOrThrow()
+                if (bytesRead == 0) {
+                    eof = true
+                    break
+                }
+                writePos += bytesRead
+                available += bytesRead
             }
-            limit = n
-
-            // 2.2 从内部缓冲区复制到用户缓冲区
-            val remaining = len - bytesRead
-            val toCopy = minOf(remaining, limit - fillPos)
-            buffer.copyInto(buf, bytesRead, fillPos, fillPos + toCopy)
-            fillPos += toCopy
-            bytesRead += toCopy
         }
 
-        return Result.success(bytesRead)
     }
 
-    override fun readToEnd(buf: MutableList<UByte>): Result<Int> {
+    override fun readToEnd(buf: MutableList<UByte>, offset: Int): Result<Int> {
         var totalBytes = 0
 
         // 从缓冲区先消耗所有剩余数据

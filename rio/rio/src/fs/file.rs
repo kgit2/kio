@@ -1,8 +1,8 @@
 use crate::container::HandleContainer;
-use ffk::ffi_io::ffi_read::{read, read_to_end};
-use ffk::ffi_io::ffi_write::{flush, write, write_all};
 use ffk::ffi_convertor::FromFFI;
 use ffk::ffi_handle::FFIHandle;
+use ffk::ffi_io::ffi_read::{read, read_to_end};
+use ffk::ffi_io::ffi_write::{flush, write, write_all};
 use ffk::ffi_result::FFIResult;
 use ffk::ffi_value::ffi_bytes::FFIBytes;
 use ffk::ffi_value::ffi_string::FFIString;
@@ -27,7 +27,6 @@ pub fn return_file_ffi_result(file: Result<File, std::io::Error>) -> FFIResult {
 #[no_mangle]
 pub extern "C" fn file_open(path: &FFIString) -> FFIResult {
     let path = path.as_origin();
-    BufWriter::new()
     return_file_ffi_result(File::open(path))
 }
 

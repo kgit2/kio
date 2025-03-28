@@ -9,7 +9,7 @@ class MemoryBufferTest {
         val input = "Hello, World!".encodeToByteArray()
         val readTarget = ByteArray(input.size)
 
-        val writeResult = buffer.write(input, input.size)
+        val writeResult = buffer.write(input,, input.size)
         assertTrue(writeResult.isSuccess)
         assertEquals(input.size, writeResult.getOrThrow())
 
@@ -23,7 +23,7 @@ class MemoryBufferTest {
     fun testReadPartial() {
         val buffer = MemoryBuffer()
         val input = "Data".encodeToByteArray()
-        buffer.write(input, input.size)
+        buffer.write(input,, input.size)
 
         val partial = ByteArray(2)
         val readResult = buffer.read(partial, partial.size)
@@ -36,10 +36,10 @@ class MemoryBufferTest {
     fun testReadToEnd() {
         val buffer = MemoryBuffer()
         val input = "EndTest".encodeToByteArray()
-        buffer.write(input, input.size)
+        buffer.write(input,, input.size)
 
         val list = mutableListOf<UByte>()
-        val result = buffer.readToEnd(list)
+        val result = buffer.readToEnd(list,)
         assertTrue(result.isSuccess)
         assertEquals(input.size, result.getOrThrow())
         assertContentEquals(input.map { it.toUByte() }, list)
@@ -49,7 +49,7 @@ class MemoryBufferTest {
     fun testResetRead() {
         val buffer = MemoryBuffer()
         val input = "abc".encodeToByteArray()
-        buffer.write(input, input.size)
+        buffer.write(input,, input.size)
 
         val first = ByteArray(2)
         buffer.read(first, 2)
@@ -64,7 +64,7 @@ class MemoryBufferTest {
     fun testClear() {
         val buffer = MemoryBuffer()
         val input = "clear".encodeToByteArray()
-        buffer.write(input, input.size)
+        buffer.write(input,, input.size)
 
         buffer.clear()
 
@@ -79,7 +79,7 @@ class MemoryBufferTest {
         val buffer = MemoryBuffer()
         val input = "WriteAll".encodeToByteArray()
 
-        val result = buffer.writeAll(input)
+        val result = buffer.writeAll(input,)
         assertTrue(result.isSuccess)
 
         val readTarget = ByteArray(input.size)
@@ -93,7 +93,7 @@ class MemoryBufferTest {
     fun testSnapshot() {
         val buffer = MemoryBuffer()
         val input = "Snap".encodeToByteArray()
-        buffer.writeAll(input)
+        buffer.writeAll(input,)
 
         val snap = buffer.snapshot()
         assertContentEquals(input, snap)
@@ -112,7 +112,7 @@ class MemoryBufferTest {
     fun testWriteNegativeLengthFails() {
         val buffer = MemoryBuffer()
         val data = byteArrayOf(1, 2, 3)
-        val result = buffer.write(data, -1)
+        val result = buffer.write(data,, -1)
         assertTrue(result.isFailure)
     }
 
@@ -128,7 +128,7 @@ class MemoryBufferTest {
     fun testWriteLenExceedsDataFails() {
         val buffer = MemoryBuffer()
         val data = byteArrayOf(1, 2)
-        val result = buffer.write(data, 5)
+        val result = buffer.write(data,, 5)
         assertTrue(result.isFailure)
     }
 
@@ -147,7 +147,7 @@ class MemoryBufferTest {
         val buf = ByteArray(8)
 
         // Write data
-        assertEquals(data.size, memBuffer.write(data, data.size).getOrNull())
+        assertEquals(data.size, memBuffer.write(data,, data.size).getOrNull())
 
         // Read partial data
         val bytesRead1 = memBuffer.read(buf, buf.size).getOrNull()
@@ -167,10 +167,10 @@ class MemoryBufferTest {
         val output = mutableListOf<UByte>()
 
         // Write data
-        assertEquals(data.size, memBuffer.write(data, data.size).getOrNull())
+        assertEquals(data.size, memBuffer.write(data,, data.size).getOrNull())
 
         // Read all remaining data
-        val totalRead = memBuffer.readToEnd(output).getOrNull()
+        val totalRead = memBuffer.readToEnd(output,).getOrNull()
         assertEquals(data.size, totalRead)
         assertEquals(data.toList(), output.map { it.toByte() })
     }
@@ -182,7 +182,7 @@ class MemoryBufferTest {
         val buf = ByteArray(8)
 
         // Write and read some data
-        assertEquals(data.size, memBuffer.write(data, data.size).getOrNull())
+        assertEquals(data.size, memBuffer.write(data,, data.size).getOrNull())
         memBuffer.read(buf, buf.size)
 
         // Reset read position and re-read
@@ -202,7 +202,7 @@ class MemoryBufferTest {
         val data = ByteArray(50) { it.toByte() } // 50 bytes of data
 
         // Write more than initial capacity
-        assertEquals(data.size, memBuffer.write(data, data.size).getOrNull())
+        assertEquals(data.size, memBuffer.write(data,, data.size).getOrNull())
         assertEquals(50, memBuffer.snapshot().size)
 
         // Check buffer content
@@ -215,11 +215,11 @@ class MemoryBufferTest {
         val data = ByteArray(10)
 
         // Negative length
-        assertFailsWith<IllegalArgumentException> { memBuffer.write(data, -1).getOrThrow() }
+        assertFailsWith<IllegalArgumentException> { memBuffer.write(data,, -1).getOrThrow() }
         assertFailsWith<IllegalArgumentException> { memBuffer.read(data, -1).getOrThrow() }
 
         // Length larger than buffer size
-        assertFailsWith<IllegalArgumentException> { memBuffer.write(data, data.size + 1).getOrThrow() }
+        assertFailsWith<IllegalArgumentException> { memBuffer.write(data,, data.size + 1).getOrThrow() }
         assertFailsWith<IllegalArgumentException> { memBuffer.read(data, data.size + 1).getOrThrow() }
     }
 }

@@ -26,7 +26,7 @@ actual object Stderr : Write {
         }
     }
 
-    override fun write(buf: ByteArray, len: Int): Result<Int> = memScoped {
+    override fun write(buf: ByteArray, offset: Int, len: Int): Result<Int> = memScoped {
         if (buf.isEmpty()) {
             Result.success(0)
         }
@@ -35,7 +35,10 @@ actual object Stderr : Write {
             return Result.failure(Exception("buf size is less than len"))
         }
 
-        stderr_write(Stdout.internal.value.ptr, buf.toFFIBytes(this)).useContents {
+        stderr_write(
+            Stdout.internal.value.ptr,
+            buf.sliceArray(IntRange(offset, len)).toFFIBytes(this)
+        ).useContents {
             when (tag) {
                 rio.FFIResult_Tag.Ok -> Result.success(ok.u_int64.convert())
                 rio.FFIResult_Tag.Err -> Result.failure(handleError(err.string))
@@ -44,12 +47,15 @@ actual object Stderr : Write {
         }
     }
 
-    override fun writeAll(buf: ByteArray): Result<Unit> = memScoped {
+    override fun writeAll(buf: ByteArray, offset: Int): Result<Unit> = memScoped {
         if (buf.isEmpty()) {
             return Result.success(Unit)
         }
 
-        stderr_write_all(Stdout.internal.value.ptr, buf.toFFIBytes(this)).useContents {
+        stderr_write_all(
+            Stdout.internal.value.ptr,
+            buf.sliceArray(offset ..< buf.size).toFFIBytes(this)
+        ).useContents {
             when (tag) {
                 rio.FFIResult_Tag.Ok -> Result.success(Unit)
                 rio.FFIResult_Tag.Err -> Result.failure(handleError(err.string))

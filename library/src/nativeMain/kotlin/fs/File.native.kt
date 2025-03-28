@@ -9,15 +9,15 @@ actual class File actual constructor(path: Path) : Read, Write {
         TODO("Not yet implemented")
     }
 
-    override fun readToEnd(buf: MutableList<UByte>): Result<Int> {
+    override fun readToEnd(buf: MutableList<UByte>, offset: Int): Result<Int> {
         TODO("Not yet implemented")
     }
 
-    override fun write(buf: ByteArray, len: Int): Result<Int> {
+    override fun write(buf: ByteArray, offset: Int, len: Int): Result<Int> {
         TODO("Not yet implemented")
     }
 
-    override fun writeAll(buf: ByteArray): Result<Unit> {
+    override fun writeAll(buf: ByteArray, offset: Int): Result<Unit> {
         TODO("Not yet implemented")
     }
 
