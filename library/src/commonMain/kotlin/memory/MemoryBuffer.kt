@@ -2,59 +2,68 @@ package memory
 
 import io.Read
 import io.Write
-import kotlin.math.max
+import io.buffered.SlicedByteArray
 
 class MemoryBuffer : Read, Write {
     // 内部存储使用 ByteArray 实现高效访问
-    private var buffer = ByteArray(INITIAL_SIZE)
+    private var buffer = SlicedByteArray.allocate(INITIAL_SIZE)
     private var readPos = 0
     private var writePos = 0
     private var size = 0  // 当前有效数据长度
 
-    override fun read(buf: ByteArray, offset: Int, len: Int): Result<Int> {
-        if (len < 0 || buf.size < len) return Result.failure(IllegalArgumentException("Invalid length or buffer size"))
+    override fun read(buf: SlicedByteArray, offset: Int, len: Int): Int {
+        if (len == 0) return 0
+        require(len >= 0 && offset >= 0 && offset + len <= buf.size) {
+            "Invalid offset/length: offset=$offset len=$len buf.size=${buf.size}"
+        }
 
         val available = size - readPos
         return when {
-            available <= 0 -> Result.success(0) // EOF
+            available <= 0 -> -1 // EOF
             else -> {
                 val toCopy = minOf(len, available)
                 val endPos = readPos + toCopy
                 buffer.copyInto(buf, offset, readPos, endPos)
                 readPos = endPos
-                Result.success(toCopy)
+                toCopy
             }
         }
     }
 
-    override fun readToEnd(buf: MutableList<UByte>, offset: Int): Result<Int> {
+    override fun readToEnd(buf: MutableList<UByte>, offset: Int): Int {
+        require(offset >= 0 && offset <= buf.size) { "Invalid offset: $offset, buf.size=${buf.size}" }
         val available = size - readPos
-        if (available <= 0) return Result.success(0)
+        if (available <= 0) return -1
 
         buf.addAll(offset, List(available) { buffer[readPos + it].toUByte() })
         readPos = size
-        return Result.success(available)
+        return available
     }
 
-    override fun write(buf: ByteArray, offset: Int, len: Int): Result<Int> {
-        if (len < 0 || buf.size < len) return Result.failure(IllegalArgumentException("Invalid length or buffer size"))
+    override fun write(buf: SlicedByteArray, offset: Int, len: Int): Int {
+        require(len >= 0 && offset >= 0 && offset + len <= buf.size) {
+            "Invalid offset/length: offset=$offset len=$len buf.size=${buf.size}"
+        }
 
-        ensureCapacity(writePos + len)
-        buf.copyInto(buffer, writePos, offset, len)
+        ensureCapacityFor(len)
+        buf.copyInto(buffer, writePos, offset, offset + len)
         writePos += len
-        size = max(size, writePos)
-        return Result.success(len)
+        size = maxOf(size, writePos)
+        return len
     }
 
-    override fun writeAll(buf: ByteArray, offset: Int): Result<Unit> {
-        ensureCapacity(writePos + buf.size)
-        buf.copyInto(buffer, writePos, offset)
-        writePos += buf.size
-        size = max(size, writePos)
-        return Result.success(Unit)
+    override fun writeAll(buf: SlicedByteArray, offset: Int) {
+        require(offset >= 0 && offset <= buf.size) { "Invalid offset: $offset, buf.size=${buf.size}" }
+        val toWrite = buf.size - offset
+        if (toWrite == 0) return
+
+        ensureCapacityFor(toWrite)
+        buf.copyInto(buffer, writePos, offset, offset + toWrite)
+        writePos += toWrite
+        size = maxOf(size, writePos)
     }
 
-    override fun flush(): Result<Unit> = Result.success(Unit)
+    override fun flush() = Unit
 
     // 内存管理方法
     fun resetRead() {
@@ -62,23 +71,66 @@ class MemoryBuffer : Read, Write {
     }
 
     fun clear() {
-        buffer = ByteArray(buffer.size.coerceAtLeast(INITIAL_SIZE)) // 清空时保留扩容后的大小
+        buffer = SlicedByteArray.allocate(buffer.size.coerceAtLeast(INITIAL_SIZE)) // 清空时保留扩容后的大小
         readPos = 0
         writePos = 0
         size = 0
     }
 
-    private fun ensureCapacity(required: Int) {
-        if (required > buffer.size) {
-            val newSize = max(buffer.size * 2, required)
-            buffer = buffer.copyOf(newSize)
+    private fun compact() {
+        if (readPos == 0) return
+        val remaining = size - readPos
+        if (remaining > 0) {
+            buffer.copyInto(buffer, 0, readPos, size) // safe overlap copy
         }
+        readPos = 0
+        writePos = remaining
+        size = remaining
     }
 
-    // 调试方法
-    fun snapshot(): ByteArray = buffer.copyOfRange(0, size)
+    private fun ensureCapacityFor(len: Int) {
+        require(len >= 0) { "len must be >= 0: $len" }
+
+        // fast path: enough tail space
+        if (writePos + len <= buffer.size) return
+
+        val remaining = size - readPos
+        // If compaction would make enough room, do a single in-place move
+        if (remaining + len <= buffer.size) {
+            compact()
+            return
+        }
+
+        // Otherwise grow once and copy the unread bytes into the new buffer
+        val newSize = maxOf(buffer.size shl 1, remaining + len)
+        val newBuf = SlicedByteArray.allocate(newSize)
+        if (remaining > 0) {
+            buffer.copyInto(newBuf, 0, readPos, size)
+        }
+        buffer = newBuf
+        readPos = 0
+        writePos = remaining
+        size = remaining
+    }
+
+    /**
+     * Return a copy of the current effective data [0, size).
+     * Independent of readPos; useful for assertions/debugging.
+     */
+    fun snapshot(): ByteArray {
+        val out = ByteArray(size)
+        var i = 0
+        while (i < size) {
+            out[i] = buffer[i].toByte()
+            i++
+        }
+        return out
+    }
 
     companion object {
         const val INITIAL_SIZE = 16
     }
 }
+
+fun String.encodeToSlicedByteArray(): SlicedByteArray =
+    SlicedByteArray.wrap(this.encodeToByteArray())

@@ -1,199 +1,198 @@
+import io.buffered.SlicedByteArray
 import kotlin.test.*
 import memory.MemoryBuffer
+import memory.encodeToSlicedByteArray
+
 
 class MemoryBufferTest {
 
     @Test
     fun testWriteAndRead() {
         val buffer = MemoryBuffer()
-        val input = "Hello, World!".encodeToByteArray()
-        val readTarget = ByteArray(input.size)
+        val input = "Hello, World!".encodeToSlicedByteArray()
 
-        val writeResult = buffer.write(input,, input.size)
-        assertTrue(writeResult.isSuccess)
-        assertEquals(input.size, writeResult.getOrThrow())
+        val writeLen = buffer.write(input, 0, input.size)
+        println(writeLen)
+        assertEquals(input.size, writeLen)
 
-        val readResult = buffer.read(readTarget, readTarget.size)
-        assertTrue(readResult.isSuccess)
-        assertEquals(input.size, readResult.getOrThrow())
+        val readTarget = SlicedByteArray.allocate(input.size)
+        val readLen = buffer.read(readTarget, 0, readTarget.size)
+        println(readLen)
+        assertEquals(input.size, readLen)
         assertContentEquals(input, readTarget)
     }
 
     @Test
     fun testReadPartial() {
         val buffer = MemoryBuffer()
-        val input = "Data".encodeToByteArray()
-        buffer.write(input,, input.size)
+        val input = "Data".encodeToSlicedByteArray()
+        buffer.write(input, 0, input.size)
 
-        val partial = ByteArray(2)
-        val readResult = buffer.read(partial, partial.size)
-        assertTrue(readResult.isSuccess)
-        assertEquals(2, readResult.getOrThrow())
-        assertContentEquals(byteArrayOf('D'.code.toByte(), 'a'.code.toByte()), partial)
+        val partial = SlicedByteArray.allocate(2)
+        val readLen = buffer.read(partial, 0, partial.size)
+        assertEquals(2, readLen)
+        assertContentEquals(SlicedByteArray.wrap("Da".encodeToByteArray()), partial)
     }
 
     @Test
     fun testReadToEnd() {
         val buffer = MemoryBuffer()
-        val input = "EndTest".encodeToByteArray()
-        buffer.write(input,, input.size)
+        val input = "EndTest".encodeToSlicedByteArray()
+        buffer.write(input, 0, input.size)
 
         val list = mutableListOf<UByte>()
-        val result = buffer.readToEnd(list,)
-        assertTrue(result.isSuccess)
-        assertEquals(input.size, result.getOrThrow())
-        assertContentEquals(input.map { it.toUByte() }, list)
+        val result = buffer.readToEnd(list, 0)
+        assertEquals(input.size, result)
+
+        val expected = "EndTest".encodeToByteArray().map { it.toUByte() }
+        assertContentEquals(expected, list)
     }
 
     @Test
     fun testResetRead() {
         val buffer = MemoryBuffer()
-        val input = "abc".encodeToByteArray()
-        buffer.write(input,, input.size)
+        val input = "abc".encodeToSlicedByteArray()
+        buffer.write(input, 0, input.size)
 
-        val first = ByteArray(2)
-        buffer.read(first, 2)
+        val first = SlicedByteArray.allocate(2)
+        buffer.read(first, 0, 2)
         buffer.resetRead()
 
-        val second = ByteArray(3)
-        buffer.read(second, 3)
+        val second = SlicedByteArray.allocate(3)
+        buffer.read(second, 0, 3)
         assertContentEquals(input, second)
     }
 
     @Test
     fun testClear() {
         val buffer = MemoryBuffer()
-        val input = "clear".encodeToByteArray()
-        buffer.write(input,, input.size)
+        val input = "clear".encodeToSlicedByteArray()
+        buffer.write(input, 0, input.size)
 
         buffer.clear()
 
-        val target = ByteArray(5)
-        val result = buffer.read(target, target.size)
-        assertTrue(result.isSuccess)
-        assertEquals(0, result.getOrThrow())
+        val target = SlicedByteArray.allocate(5)
+        val result = buffer.read(target, 0, target.size)
+        assertEquals(-1, result)
     }
 
     @Test
     fun testWriteAll() {
         val buffer = MemoryBuffer()
-        val input = "WriteAll".encodeToByteArray()
+        val input = "WriteAll".encodeToSlicedByteArray()
 
-        val result = buffer.writeAll(input,)
-        assertTrue(result.isSuccess)
+        buffer.writeAll(input, 0)
 
-        val readTarget = ByteArray(input.size)
+        val readTarget = SlicedByteArray.allocate(input.size)
         buffer.resetRead()
-        buffer.read(readTarget, readTarget.size)
-
+        val readLen = buffer.read(readTarget, 0, readTarget.size)
+        assertEquals(input.size, readLen)
         assertContentEquals(input, readTarget)
     }
 
     @Test
     fun testSnapshot() {
         val buffer = MemoryBuffer()
-        val input = "Snap".encodeToByteArray()
-        buffer.writeAll(input,)
+        val input = "Snap".encodeToSlicedByteArray()
+        buffer.writeAll(input, 0)
 
         val snap = buffer.snapshot()
-        assertContentEquals(input, snap)
+        assertContentEquals("Snap".encodeToByteArray(), snap)
     }
 
     @Test
     fun testReadBeyondEOF() {
         val buffer = MemoryBuffer()
-        val target = ByteArray(10)
-        val result = buffer.read(target, 10)
-        assertTrue(result.isSuccess)
-        assertEquals(0, result.getOrThrow())
+        val target = SlicedByteArray.allocate(10)
+        val result = buffer.read(target, 0, 10)
+        assertEquals(-1, result)
     }
 
     @Test
     fun testWriteNegativeLengthFails() {
         val buffer = MemoryBuffer()
-        val data = byteArrayOf(1, 2, 3)
-        val result = buffer.write(data,, -1)
-        assertTrue(result.isFailure)
+        val data = SlicedByteArray.wrap(byteArrayOf(1, 2, 3))
+        assertFailsWith<IllegalArgumentException> { buffer.write(data, 0, -1) }
     }
 
     @Test
     fun testReadNegativeLengthFails() {
         val buffer = MemoryBuffer()
-        val buf = ByteArray(3)
-        val result = buffer.read(buf, -1)
-        assertTrue(result.isFailure)
+        val buf = SlicedByteArray.allocate(3)
+        assertFailsWith<IllegalArgumentException> { buffer.read(buf, 0, -1) }
     }
 
     @Test
     fun testWriteLenExceedsDataFails() {
         val buffer = MemoryBuffer()
-        val data = byteArrayOf(1, 2)
-        val result = buffer.write(data,, 5)
-        assertTrue(result.isFailure)
+        val data = SlicedByteArray.wrap(byteArrayOf(1, 2))
+        assertFailsWith<IllegalArgumentException> { buffer.write(data, 0, 5) }
     }
 
     @Test
     fun testReadLenExceedsBufFails() {
         val buffer = MemoryBuffer()
-        val buf = ByteArray(2)
-        val result = buffer.read(buf, 5)
-        assertTrue(result.isFailure)
+        val buf = SlicedByteArray.allocate(2)
+        assertFailsWith<IllegalArgumentException> { buffer.read(buf, 0, 5) }
     }
 
     @Test
     fun `test write and read`() {
         val memBuffer = MemoryBuffer()
-        val data = "Hello, World!".encodeToByteArray()
-        val buf = ByteArray(8)
+        val data = SlicedByteArray.wrap("Hello, World!".encodeToByteArray())
+        val buf1 = SlicedByteArray.allocate(8)
 
         // Write data
-        assertEquals(data.size, memBuffer.write(data,, data.size).getOrNull())
+        assertEquals(data.size, memBuffer.write(data, 0, data.size))
 
         // Read partial data
-        val bytesRead1 = memBuffer.read(buf, buf.size).getOrNull()
+        val bytesRead1 = memBuffer.read(buf1, 0, buf1.size)
         assertEquals(8, bytesRead1)
-        assertEquals("Hello, W", buf.decodeToString())
+        assertContentEquals(SlicedByteArray.wrap("Hello, W".encodeToByteArray()), buf1)
 
         // Read remaining data
-        val bytesRead2 = memBuffer.read(buf, buf.size).getOrNull()
+        val buf2 = SlicedByteArray.allocate(8)
+        val bytesRead2 = memBuffer.read(buf2, 0, buf2.size)
         assertEquals(5, bytesRead2)
-        assertEquals("orld!, W", buf.decodeToString())
+        val head = SlicedByteArray.allocate(bytesRead2)
+        buf2.copyInto(head, 0, 0, bytesRead2)
+        assertContentEquals(SlicedByteArray.wrap("orld!".encodeToByteArray()), head)
     }
 
     @Test
     fun `test readToEnd`() {
         val memBuffer = MemoryBuffer()
-        val data = "Hello, World!".encodeToByteArray()
+        val data = SlicedByteArray.wrap("Hello, World!".encodeToByteArray())
         val output = mutableListOf<UByte>()
 
         // Write data
-        assertEquals(data.size, memBuffer.write(data,, data.size).getOrNull())
+        assertEquals(data.size, memBuffer.write(data, 0, data.size))
 
         // Read all remaining data
-        val totalRead = memBuffer.readToEnd(output,).getOrNull()
+        val totalRead = memBuffer.readToEnd(output, 0)
         assertEquals(data.size, totalRead)
-        assertEquals(data.toList(), output.map { it.toByte() })
+        assertEquals("Hello, World!".encodeToByteArray().toList(), output.map { it.toByte() })
     }
 
     @Test
     fun `test clear and resetRead`() {
         val memBuffer = MemoryBuffer()
-        val data = "Hello, World!".encodeToByteArray()
-        val buf = ByteArray(8)
+        val data = SlicedByteArray.wrap("Hello, World!".encodeToByteArray())
+        val buf = SlicedByteArray.allocate(8)
 
         // Write and read some data
-        assertEquals(data.size, memBuffer.write(data,, data.size).getOrNull())
-        memBuffer.read(buf, buf.size)
+        assertEquals(data.size, memBuffer.write(data, 0, data.size))
+        memBuffer.read(buf, 0, buf.size)
 
         // Reset read position and re-read
         memBuffer.resetRead()
-        val bytesRead = memBuffer.read(buf, buf.size).getOrNull()
+        val bytesRead = memBuffer.read(buf, 0, buf.size)
         assertEquals(8, bytesRead)
-        assertEquals("Hello, W", buf.decodeToString())
+        assertContentEquals(SlicedByteArray.wrap("Hello, W".encodeToByteArray()), buf)
 
         // Clear buffer and verify
         memBuffer.clear()
-        assertEquals(0, memBuffer.read(buf, buf.size).getOrNull())
+        assertEquals(-1, memBuffer.read(buf, 0, buf.size))
     }
 
     @Test
@@ -202,7 +201,7 @@ class MemoryBufferTest {
         val data = ByteArray(50) { it.toByte() } // 50 bytes of data
 
         // Write more than initial capacity
-        assertEquals(data.size, memBuffer.write(data,, data.size).getOrNull())
+        assertEquals(data.size, memBuffer.write(SlicedByteArray.wrap(data), 0, data.size))
         assertEquals(50, memBuffer.snapshot().size)
 
         // Check buffer content
@@ -215,11 +214,11 @@ class MemoryBufferTest {
         val data = ByteArray(10)
 
         // Negative length
-        assertFailsWith<IllegalArgumentException> { memBuffer.write(data,, -1).getOrThrow() }
-        assertFailsWith<IllegalArgumentException> { memBuffer.read(data, -1).getOrThrow() }
+        assertFailsWith<IllegalArgumentException> { memBuffer.write(SlicedByteArray.wrap(data), 0, -1) }
+        assertFailsWith<IllegalArgumentException> { memBuffer.read(SlicedByteArray.wrap(data), 0, -1) }
 
         // Length larger than buffer size
-        assertFailsWith<IllegalArgumentException> { memBuffer.write(data,, data.size + 1).getOrThrow() }
-        assertFailsWith<IllegalArgumentException> { memBuffer.read(data, data.size + 1).getOrThrow() }
+        assertFailsWith<IllegalArgumentException> { memBuffer.write(SlicedByteArray.wrap(data), 0, data.size + 1) }
+        assertFailsWith<IllegalArgumentException> { memBuffer.read(SlicedByteArray.wrap(data), 0, data.size + 1) }
     }
 }

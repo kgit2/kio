@@ -18,20 +18,6 @@ impl From<FFIBytes> for String {
     }
 }
 
-impl IntoFFI for Vec<u8> {
-    type FFIType = FFIBytes;
-
-    fn into_ffi(mut self) -> Self::FFIType {
-        let byte_array = FFIBytes {
-            buffer: self.as_mut_ptr(),
-            len: self.len(),
-            capacity: self.capacity(),
-        };
-        std::mem::forget(self);
-        byte_array
-    }
-}
-
 impl FromFFI for FFIBytes {
     type OriginRef = [u8];
     type OriginOwned = Vec<u8>;
@@ -66,18 +52,6 @@ impl FFIBytes {
             return;
         }
         drop(self);
-    }
-}
-
-impl IntoFFIValue for FFIBytes {
-    fn into_ffi_value(self) -> FFIValue {
-        FFIValue::Bytes(self)
-    }
-}
-
-impl IntoFFIValue for Vec<u8> {
-    fn into_ffi_value(self) -> FFIValue {
-        self.into_ffi().into_ffi_value()
     }
 }
 

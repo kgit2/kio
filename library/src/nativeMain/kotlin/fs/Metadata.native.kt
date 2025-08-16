@@ -1,5 +1,6 @@
 package fs
 
+import exception.UnknownFFIError
 import handleError
 import kotlinx.cinterop.CValue
 import kotlinx.cinterop.memScoped
@@ -8,7 +9,7 @@ import rio.*
 import kotlin.native.ref.createCleaner
 
 actual class Metadata private actual constructor() {
-    private var internal: CValue<FFIHandle>? = null
+    private var internal: CValue<FFIHandler>? = null
 
     private val cleaner = createCleaner(internal) { handle ->
         handle?.apply {
@@ -18,7 +19,7 @@ actual class Metadata private actual constructor() {
         }
     }
 
-    constructor(handle: CValue<FFIHandle>) : this() {
+    constructor(handle: CValue<FFIHandler>) : this() {
         internal = handle
     }
 
@@ -26,8 +27,8 @@ actual class Metadata private actual constructor() {
         return metadata_file_type(internal!!.ptr).useContents {
             when (tag) {
                 rio.FFIResult_Tag.Ok -> ok.file_type.toFileType()
-                rio.FFIResult_Tag.Err -> throw handleError(err.string)
-                else -> throw Exception("Unknown error")
+                rio.FFIResult_Tag.Err -> throw handleError(err)
+                else -> throw UnknownFFIError()
             }
         }
     }
@@ -36,8 +37,8 @@ actual class Metadata private actual constructor() {
         return metadata_len(internal!!.ptr).useContents {
             when (tag) {
                 rio.FFIResult_Tag.Ok -> ok.u_int64
-                rio.FFIResult_Tag.Err -> throw handleError(err.string)
-                else -> throw Exception("Unknown error")
+                rio.FFIResult_Tag.Err -> throw handleError(err)
+                else -> throw UnknownFFIError()
             }
         }
     }
@@ -46,8 +47,8 @@ actual class Metadata private actual constructor() {
         return metadata_readonly(internal!!.ptr).useContents {
             when (tag) {
                 rio.FFIResult_Tag.Ok -> ok.boolean
-                rio.FFIResult_Tag.Err -> throw handleError(err.string)
-                else -> throw Exception("Unknown error")
+                rio.FFIResult_Tag.Err -> throw handleError(err)
+                else -> throw UnknownFFIError()
             }
         }
     }
@@ -56,8 +57,8 @@ actual class Metadata private actual constructor() {
         metadata_set_readonly(internal!!.ptr, value).useContents {
             when (tag) {
                 FFIResult_Tag.Ok -> Unit
-                FFIResult_Tag.Err -> throw handleError(err.string)
-                else -> throw Exception("Unknown error")
+                FFIResult_Tag.Err -> throw handleError(err)
+                else -> throw UnknownFFIError()
             }
         }
     }

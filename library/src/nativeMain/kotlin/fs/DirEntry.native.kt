@@ -1,5 +1,6 @@
 package fs
 
+import exception.UnknownFFIError
 import handleError
 import kotlinx.cinterop.*
 import path.Path
@@ -8,7 +9,7 @@ import toCValue
 import kotlin.native.ref.createCleaner
 
 actual class DirEntry private actual constructor() : AutoCloseable {
-    private var internal: CValue<FFIHandle>? = null
+    private var internal: CValue<FFIHandler>? = null
 
     private val cleaner = createCleaner(internal) { handle ->
         handle?.apply {
@@ -18,7 +19,7 @@ actual class DirEntry private actual constructor() : AutoCloseable {
         }
     }
 
-    constructor(handle: CValue<FFIHandle>) : this() {
+    constructor(handle: CValue<FFIHandler>) : this() {
         internal = handle
     }
 
@@ -26,8 +27,8 @@ actual class DirEntry private actual constructor() : AutoCloseable {
         dir_entry_file_type(internal!!.ptr).useContents {
             when (tag) {
                 rio.FFIResult_Tag.Ok -> ok.file_type.toFileType()
-                rio.FFIResult_Tag.Err -> throw handleError(err.string)
-                else -> throw Exception("Unknown error")
+                rio.FFIResult_Tag.Err -> throw handleError(err)
+                else -> throw UnknownFFIError()
             }
         }
     }
@@ -35,13 +36,13 @@ actual class DirEntry private actual constructor() : AutoCloseable {
     actual fun path(): Path = memScoped {
         return dir_entry_path(internal!!.ptr).useContents {
             when (tag) {
-                rio.FFIResult_Tag.Ok -> Path(cValue<FFIHandle> {
+                rio.FFIResult_Tag.Ok -> Path(cValue<FFIHandler> {
                     this.index = ok.handle.index
                     this.handle_type = ok.handle.handle_type
                 })
 
-                rio.FFIResult_Tag.Err -> throw handleError(err.string)
-                else -> throw Exception("Unknown error")
+                rio.FFIResult_Tag.Err -> throw handleError(err)
+                else -> throw UnknownFFIError()
             }
         }
     }
@@ -50,8 +51,8 @@ actual class DirEntry private actual constructor() : AutoCloseable {
         return dir_entry_metadata(internal!!.ptr).useContents {
             when (tag) {
                 rio.FFIResult_Tag.Ok -> Metadata(ok.handle.toCValue())
-                rio.FFIResult_Tag.Err -> throw handleError(err.string)
-                else -> throw Exception("Unknown error")
+                rio.FFIResult_Tag.Err -> throw handleError(err)
+                else -> throw UnknownFFIError()
             }
         }
     }

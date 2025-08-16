@@ -13,7 +13,7 @@ typedef enum FFIFileType {
   Other,
 } FFIFileType;
 
-typedef enum FFIHandleType {
+typedef enum FFIHandlerType {
   Stdin,
   Stdout,
   Stderr,
@@ -22,7 +22,7 @@ typedef enum FFIHandleType {
   Metadata,
   ReadDir,
   DirEntry,
-} FFIHandleType;
+} FFIHandlerType;
 
 typedef struct FFIString {
   char *buffer;
@@ -35,10 +35,10 @@ typedef struct FFIBytes {
   uintptr_t capacity;
 } FFIBytes;
 
-typedef struct FFIHandle {
+typedef struct FFIHandler {
   uint64_t index;
-  enum FFIHandleType handle_type;
-} FFIHandle;
+  enum FFIHandlerType handle_type;
+} FFIHandler;
 
 typedef struct FFIVec {
   struct FFIValue *items;
@@ -118,7 +118,7 @@ typedef struct FFIValue {
       struct FFIBytes bytes;
     };
     struct {
-      struct FFIHandle handle;
+      struct FFIHandler handle;
     };
     struct {
       struct FFIVec vec;

@@ -55,12 +55,6 @@ impl FromFFI for FFIString {
     }
 }
 
-impl IntoFFIValue for FFIString {
-    fn into_ffi_value(self) -> FFIValue {
-        FFIValue::String(self)
-    }
-}
-
 impl IntoFFIValue for String {
     fn into_ffi_value(self) -> FFIValue {
         self.into_ffi().into_ffi_value()

@@ -3,7 +3,7 @@ pub mod ffi_file_type;
 pub mod ffi_string;
 pub mod ffi_vec;
 
-use crate::ffi_handle::FFIHandle;
+use crate::ffi_handle::FFIHandler;
 use crate::ffi_value;
 use crate::ffi_value::ffi_bytes::FFIBytes;
 use crate::ffi_value::ffi_file_type::FFIFileType;
@@ -32,7 +32,7 @@ pub enum FFIValue {
     Boolean(bool),
     String(FFIString),
     Bytes(FFIBytes),
-    Handle(FFIHandle),
+    Handle(FFIHandler),
     Vec(FFIVec),
     FileType(FFIFileType),
     Error(FFIString),
@@ -56,7 +56,7 @@ ffi_value! {
         Boolean(bool, to_boolean),
         String(FFIString, to_string),
         Bytes(FFIBytes, to_bytes),
-        Handle(FFIHandle, to_handle),
+        Handle(FFIHandler, to_handle),
         Vec(FFIVec, to_vec),
         FileType(FFIFileType, to_file_type),
     }
@@ -68,6 +68,12 @@ ffi_value! {
         Unit((), to_unit),
     }
 }
+
+// impl IntoFFIValue for isize {
+//     fn into_ffi_value(self) -> FFIValue {
+//         FFIValue::ISize(self)
+//     }
+// }
 
 // impl Drop for FFIValue {
 //     fn drop(&mut self) {

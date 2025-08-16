@@ -1,79 +1,71 @@
-use crate::ffi_value::{FFIValue, IntoFFIValue};
-
 #[repr(C)]
 #[derive(Debug, Clone)]
-pub struct FFIHandle {
+pub struct FFIHandler {
     pub index: u64,
-    pub handle_type: FFIHandleType,
+    pub handle_type: FFIHandlerType,
 }
 
-impl FFIHandle {
-    pub fn stdin(index: u64) -> FFIHandle {
-        FFIHandle {
+impl FFIHandler {
+    pub fn stdin(index: u64) -> FFIHandler {
+        FFIHandler {
             index,
-            handle_type: FFIHandleType::Stdin,
+            handle_type: FFIHandlerType::Stdin,
         }
     }
 
-    pub fn stdout(index: u64) -> FFIHandle {
-        FFIHandle {
+    pub fn stdout(index: u64) -> FFIHandler {
+        FFIHandler {
             index,
-            handle_type: FFIHandleType::Stdout,
+            handle_type: FFIHandlerType::Stdout,
         }
     }
 
-    pub fn stderr(index: u64) -> FFIHandle {
-        FFIHandle {
+    pub fn stderr(index: u64) -> FFIHandler {
+        FFIHandler {
             index,
-            handle_type: FFIHandleType::Stderr,
+            handle_type: FFIHandlerType::Stderr,
         }
     }
 
-    pub fn file(index: u64) -> FFIHandle {
-        FFIHandle {
+    pub fn file(index: u64) -> FFIHandler {
+        FFIHandler {
             index,
-            handle_type: FFIHandleType::File,
+            handle_type: FFIHandlerType::File,
         }
     }
 
-    pub fn metadata(index: u64) -> FFIHandle {
-        FFIHandle {
+    pub fn metadata(index: u64) -> FFIHandler {
+        FFIHandler {
             index,
-            handle_type: FFIHandleType::Metadata,
+            handle_type: FFIHandlerType::Metadata,
         }
     }
 
-    pub fn path(index: u64) -> FFIHandle {
-        FFIHandle {
+    pub fn path(index: u64) -> FFIHandler {
+        FFIHandler {
             index,
-            handle_type: FFIHandleType::Path,
+            handle_type: FFIHandlerType::Path,
         }
     }
 
-    pub fn read_dir(index: u64) -> FFIHandle {
-        FFIHandle {
+    pub fn read_dir(index: u64) -> FFIHandler {
+        FFIHandler {
             index,
-            handle_type: FFIHandleType::ReadDir,
+            handle_type: FFIHandlerType::ReadDir,
         }
     }
 
-    pub fn dir_entry(index: u64) -> FFIHandle {
-        FFIHandle {
+    pub fn dir_entry(index: u64) -> FFIHandler {
+        FFIHandler {
             index,
-            handle_type: FFIHandleType::DirEntry,
+            handle_type: FFIHandlerType::DirEntry,
         }
-    }
-}
-
-impl IntoFFIValue for FFIHandle {
-    fn into_ffi_value(self) -> FFIValue {
-        FFIValue::Handle(self)
     }
 }
 
 #[repr(C)]
 #[derive(Debug, Clone)]
-pub enum FFIHandleType {
+pub enum FFIHandlerType {
     Stdin,
     Stdout,
     Stderr,

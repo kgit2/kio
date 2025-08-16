@@ -1,5 +1,6 @@
 package fs
 
+import exception.UnknownFFIError
 import handleError
 import kotlinx.cinterop.CValue
 import kotlinx.cinterop.memScoped
@@ -9,7 +10,7 @@ import toCValue
 import kotlin.native.ref.createCleaner
 
 actual class ReadDir private actual constructor() : Iterator<DirEntry>, AutoCloseable {
-    private var internal: CValue<FFIHandle>? = null
+    private var internal: CValue<FFIHandler>? = null
     private var current: DirEntry? = null
 
     private val cleaner = createCleaner(internal) { handle ->
@@ -20,7 +21,7 @@ actual class ReadDir private actual constructor() : Iterator<DirEntry>, AutoClos
         }
     }
 
-    constructor(handle: CValue<FFIHandle>) : this() {
+    constructor(handle: CValue<FFIHandler>) : this() {
         internal = handle
     }
 
@@ -35,8 +36,8 @@ actual class ReadDir private actual constructor() : Iterator<DirEntry>, AutoClos
                         current = DirEntry(ok.handle.toCValue())
                         true
                     }
-                    FFIResult_Tag.Err -> throw handleError(err.string)
-                    else -> throw Exception("Unknown error")
+                    FFIResult_Tag.Err -> throw handleError(err)
+                    else -> throw UnknownFFIError()
                 }
             }
         } ?: false

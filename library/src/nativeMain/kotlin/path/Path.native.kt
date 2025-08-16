@@ -1,5 +1,6 @@
 package path
 
+import exception.UnknownFFIError
 import fs.Metadata
 import fs.ReadDir
 import handleError
@@ -27,8 +28,8 @@ actual class Path(
             return path_cwd().useContents {
                 when (tag) {
                     FFIResult_Tag.Ok -> Path(ok.handle.toCValue())
-                    FFIResult_Tag.Err -> throw handleError(err.string)
-                    else -> throw Exception("Unknown error")
+                    FFIResult_Tag.Err -> throw handleError(err)
+                    else -> throw UnknownFFIError()
                 }
             }
         }
@@ -38,8 +39,8 @@ actual class Path(
         path_push(internal.ptr, value.toFFIString(this)).useContents {
             when (tag) {
                 FFIResult_Tag.Ok -> Unit
-                FFIResult_Tag.Err -> throw handleError(err.string)
-                else -> throw Exception("Unknown error")
+                FFIResult_Tag.Err -> throw handleError(err)
+                else -> throw UnknownFFIError()
             }
         }
     }
@@ -49,8 +50,8 @@ actual class Path(
             when (tag) {
                 FFIResult_Tag.Ok -> ok.boolean
                 FFIResult_Tag.None -> throw NullPointerException()
-                FFIResult_Tag.Err -> throw handleError(err.string)
-                else -> throw Exception("Unknown error")
+                FFIResult_Tag.Err -> throw handleError(err)
+                else -> throw UnknownFFIError()
             }
         }
     }
@@ -60,8 +61,8 @@ actual class Path(
             when (tag) {
                 FFIResult_Tag.Ok -> ok.string.toKString()
                 FFIResult_Tag.None -> throw NullPointerException()
-                FFIResult_Tag.Err -> throw handleError(err.string)
-                else -> throw Exception("Unknown error")
+                FFIResult_Tag.Err -> throw handleError(err)
+                else -> throw UnknownFFIError()
             }
         }
     }
@@ -71,8 +72,8 @@ actual class Path(
             when (tag) {
                 FFIResult_Tag.Ok -> ok.string.toKString()
                 FFIResult_Tag.None -> throw NullPointerException()
-                FFIResult_Tag.Err -> throw handleError(err.string)
-                else -> throw Exception("Unknown error")
+                FFIResult_Tag.Err -> throw handleError(err)
+                else -> throw UnknownFFIError()
             }
         }
     }
@@ -82,8 +83,8 @@ actual class Path(
             when (tag) {
                 FFIResult_Tag.Ok -> Path(ok.handle.toCValue())
                 FFIResult_Tag.None -> throw NullPointerException()
-                FFIResult_Tag.Err -> throw handleError(err.string)
-                else -> throw Exception("Unknown error")
+                FFIResult_Tag.Err -> throw handleError(err)
+                else -> throw UnknownFFIError()
             }
         }
     }
@@ -93,8 +94,8 @@ actual class Path(
             .useContents {
                 when (tag) {
                     FFIResult_Tag.Ok -> Unit
-                    FFIResult_Tag.Err -> throw handleError(err.string)
-                    else -> throw Exception("Unknown error")
+                    FFIResult_Tag.Err -> throw handleError(err)
+                    else -> throw UnknownFFIError()
                 }
             }
     }
@@ -104,8 +105,8 @@ actual class Path(
             .useContents {
                 when (tag) {
                     FFIResult_Tag.Ok -> Unit
-                    FFIResult_Tag.Err -> throw handleError(err.string)
-                    else -> throw Exception("Unknown error")
+                    FFIResult_Tag.Err -> throw handleError(err)
+                    else -> throw UnknownFFIError()
                 }
             }
     }
@@ -114,8 +115,8 @@ actual class Path(
         return path_normalize(internal.ptr).useContents {
             when (tag) {
                 FFIResult_Tag.Ok -> Path(ok.handle.toCValue())
-                FFIResult_Tag.Err -> throw handleError(err.string)
-                else -> throw Exception("Unknown error")
+                FFIResult_Tag.Err -> throw handleError(err)
+                else -> throw UnknownFFIError()
             }
         }
     }
@@ -124,8 +125,8 @@ actual class Path(
         return path_canonicalize(internal.ptr).useContents {
             when (tag) {
                 FFIResult_Tag.Ok -> Path(ok.handle.toCValue())
-                FFIResult_Tag.Err -> throw handleError(err.string)
-                else -> throw Exception("Unknown error")
+                FFIResult_Tag.Err -> throw handleError(err)
+                else -> throw UnknownFFIError()
             }
         }
     }
@@ -134,8 +135,8 @@ actual class Path(
         return path_is_absolute(internal.ptr).useContents {
             when (tag) {
                 FFIResult_Tag.Ok -> ok.boolean
-                FFIResult_Tag.Err -> throw handleError(err.string)
-                else -> throw Exception("Unknown error")
+                FFIResult_Tag.Err -> throw handleError(err)
+                else -> throw UnknownFFIError()
             }
         }
     }
@@ -144,8 +145,8 @@ actual class Path(
         return path_is_relative(internal.ptr).useContents {
             when (tag) {
                 FFIResult_Tag.Ok -> ok.boolean
-                FFIResult_Tag.Err -> throw handleError(err.string)
-                else -> throw Exception("Unknown error")
+                FFIResult_Tag.Err -> throw handleError(err)
+                else -> throw UnknownFFIError()
             }
         }
     }
@@ -154,8 +155,8 @@ actual class Path(
         return path_exists(internal.ptr).useContents {
             when (tag) {
                 FFIResult_Tag.Ok -> ok.boolean
-                FFIResult_Tag.Err -> throw handleError(err.string)
-                else -> throw Exception("Unknown error")
+                FFIResult_Tag.Err -> throw handleError(err)
+                else -> throw UnknownFFIError()
             }
         }
     }
@@ -164,8 +165,8 @@ actual class Path(
         return path_is_file(internal.ptr).useContents {
             when (tag) {
                 FFIResult_Tag.Ok -> ok.boolean
-                FFIResult_Tag.Err -> throw handleError(err.string)
-                else -> throw Exception("Unknown error")
+                FFIResult_Tag.Err -> throw handleError(err)
+                else -> throw UnknownFFIError()
             }
         }
     }
@@ -174,8 +175,8 @@ actual class Path(
         return path_is_dir(internal.ptr).useContents {
             when (tag) {
                 FFIResult_Tag.Ok -> ok.boolean
-                FFIResult_Tag.Err -> throw handleError(err.string)
-                else -> throw Exception("Unknown error")
+                FFIResult_Tag.Err -> throw handleError(err)
+                else -> throw UnknownFFIError()
             }
         }
     }
@@ -185,8 +186,8 @@ actual class Path(
             when (tag) {
                 FFIResult_Tag.Ok -> Metadata(ok.handle.toCValue())
                 FFIResult_Tag.None -> throw NullPointerException()
-                FFIResult_Tag.Err -> throw handleError(err.string)
-                else -> throw Exception("Unknown error")
+                FFIResult_Tag.Err -> throw handleError(err)
+                else -> throw UnknownFFIError()
             }
         }
     }
@@ -196,8 +197,8 @@ actual class Path(
             when (tag) {
                 FFIResult_Tag.Ok -> ReadDir(ok.handle.toCValue())
                 FFIResult_Tag.None -> throw NullPointerException()
-                FFIResult_Tag.Err -> throw handleError(err.string)
-                else -> throw Exception("Unknown error")
+                FFIResult_Tag.Err -> throw handleError(err)
+                else -> throw UnknownFFIError()
             }
         }
     }
@@ -207,8 +208,8 @@ actual class Path(
             when (tag) {
                 FFIResult_Tag.Ok -> ok.vec.toStringList()
                 FFIResult_Tag.None -> throw NullPointerException()
-                FFIResult_Tag.Err -> throw handleError(err.string)
-                else -> throw Exception("Unknown error")
+                FFIResult_Tag.Err -> throw handleError(err)
+                else -> throw UnknownFFIError()
             }
         }
     }
@@ -217,8 +218,8 @@ actual class Path(
         path_clear(internal.ptr).useContents {
             when (tag) {
                 FFIResult_Tag.Ok -> Unit
-                FFIResult_Tag.Err -> throw handleError(err.string)
-                else -> throw Exception("Unknown error")
+                FFIResult_Tag.Err -> throw handleError(err)
+                else -> throw UnknownFFIError()
             }
         }
     }
@@ -228,8 +229,8 @@ actual class Path(
             when (tag) {
                 FFIResult_Tag.Ok -> Path(ok.handle.toCValue())
                 FFIResult_Tag.None -> throw NullPointerException()
-                FFIResult_Tag.Err -> throw handleError(err.string)
-                else -> throw Exception("Unknown error")
+                FFIResult_Tag.Err -> throw handleError(err)
+                else -> throw UnknownFFIError()
             }
         }
     }
@@ -239,8 +240,8 @@ actual class Path(
             when (tag) {
                 FFIResult_Tag.Ok -> ok.string.toKString()
                 FFIResult_Tag.None -> throw NullPointerException()
-                FFIResult_Tag.Err -> throw handleError(err.string)
-                else -> throw Exception("Unknown error")
+                FFIResult_Tag.Err -> throw handleError(err)
+                else -> throw UnknownFFIError()
             }
         }
     }
@@ -250,8 +251,8 @@ actual class Path(
             when (tag) {
                 FFIResult_Tag.Ok -> ok.string.toKString()
                 FFIResult_Tag.None -> throw NullPointerException()
-                FFIResult_Tag.Err -> throw handleError(err.string)
-                else -> throw Exception("Unknown error")
+                FFIResult_Tag.Err -> throw handleError(err)
+                else -> throw UnknownFFIError()
             }
         }
     }
@@ -260,8 +261,8 @@ actual class Path(
         return path_compare(internal.ptr, other.internal.ptr).useContents {
             when (tag) {
                 FFIResult_Tag.Ok -> ok.int32.convert()
-                FFIResult_Tag.Err -> throw handleError(err.string)
-                else -> throw Exception("Unknown error")
+                FFIResult_Tag.Err -> throw handleError(err)
+                else -> throw UnknownFFIError()
             }
         }
     }
@@ -273,8 +274,8 @@ actual class Path(
         return path_eq(internal.ptr, other.internal.ptr).useContents {
             when (tag) {
                 FFIResult_Tag.Ok -> ok.boolean
-                FFIResult_Tag.Err -> throw handleError(err.string)
-                else -> throw Exception("Unknown error")
+                FFIResult_Tag.Err -> throw handleError(err)
+                else -> throw UnknownFFIError()
             }
         }
     }
@@ -283,8 +284,8 @@ actual class Path(
         return path_hash(internal.ptr).useContents {
             when (tag) {
                 FFIResult_Tag.Ok -> ok.u_size.convert()
-                FFIResult_Tag.Err -> throw handleError(err.string)
-                else -> throw Exception("Unknown error")
+                FFIResult_Tag.Err -> throw handleError(err)
+                else -> throw UnknownFFIError()
             }
         }
     }

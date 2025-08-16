@@ -1,5 +1,6 @@
-import rio.FFIString
+import exception.IOException
+import rio.FFIValue
 
-fun handleError(error: FFIString): Exception {
-    return Exception(error.toKString())
+fun handleError(error: FFIValue): Exception {
+    return IOException(error.string.toKString())
 }

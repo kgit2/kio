@@ -5,7 +5,7 @@ actual object Stdout : Write {
         TODO("Not yet implemented")
     }
 
-    override fun flush(): Result<Unit> {
+    override fun flush() {
         TODO("Not yet implemented")
     }
 }

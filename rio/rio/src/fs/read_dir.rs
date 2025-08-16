@@ -1,28 +1,29 @@
-use crate::container::HandleContainer;
+use crate::container::HandlerContainer;
 use crate::fs::metadata::metadata_init;
 use crate::path::path_create;
 use ffk::ffi_convertor::IntoFFI;
-use ffk::ffi_handle::FFIHandle;
+use ffk::ffi_handle::FFIHandler;
 use ffk::ffi_result::FFIResult;
 use ffk::ffi_value::ffi_string::FFIString;
 use ffk::ffi_value::IntoFFIValue;
 use std::fs::{DirEntry, ReadDir};
 use std::sync::LazyLock;
 
-static READ_DIR_CONTAINER: LazyLock<HandleContainer<ReadDir>> = LazyLock::new(HandleContainer::new);
-static DIR_ENTRY_CONTAINER: LazyLock<HandleContainer<DirEntry>> =
-    LazyLock::new(HandleContainer::new);
+static READ_DIR_CONTAINER: LazyLock<HandlerContainer<ReadDir>> =
+    LazyLock::new(HandlerContainer::new);
+static DIR_ENTRY_CONTAINER: LazyLock<HandlerContainer<DirEntry>> =
+    LazyLock::new(HandlerContainer::new);
 
-pub fn read_dir_init(read_dir: ReadDir) -> FFIHandle {
-    READ_DIR_CONTAINER.create_handle(read_dir, FFIHandle::read_dir)
+pub fn read_dir_init(read_dir: ReadDir) -> FFIHandler {
+    READ_DIR_CONTAINER.create_handler(read_dir, FFIHandler::read_dir)
 }
 
-pub fn dir_entry_init(dir_entry: DirEntry) -> FFIHandle {
-    DIR_ENTRY_CONTAINER.create_handle(dir_entry, FFIHandle::dir_entry)
+pub fn dir_entry_init(dir_entry: DirEntry) -> FFIHandler {
+    DIR_ENTRY_CONTAINER.create_handler(dir_entry, FFIHandler::dir_entry)
 }
 
 #[no_mangle]
-pub extern "C" fn read_dir_next(handle: &FFIHandle) -> FFIResult {
+pub extern "C" fn read_dir_next(handle: &FFIHandler) -> FFIResult {
     match READ_DIR_CONTAINER.get_mut(handle) {
         None => FFIResult::none(),
         Some(mut read_dir) => {
@@ -38,14 +39,14 @@ pub extern "C" fn read_dir_next(handle: &FFIHandle) -> FFIResult {
 
 #[no_mangle]
 pub extern "C" fn read_dir_into_list(
-    handle: &FFIHandle,
+    handle: &FFIHandler,
     error_callback: extern "C" fn(FFIString, *mut std::ffi::c_void),
     payload: *mut std::ffi::c_void,
 ) -> FFIResult {
-    match READ_DIR_CONTAINER.remove_handle(handle) {
+    match READ_DIR_CONTAINER.remove_handler(handle) {
         None => FFIResult::none(),
         Some((_, read_dir)) => {
-            let collection: Vec<FFIHandle> = read_dir
+            let collection: Vec<FFIHandler> = read_dir
                 .filter_map(|dir_entry| match dir_entry {
                     Ok(dir_entry) => dir_entry_init(dir_entry).into(),
                     Err(error) => {
@@ -61,7 +62,7 @@ pub extern "C" fn read_dir_into_list(
 }
 
 #[no_mangle]
-pub extern "C" fn dir_entry_path(handle: &FFIHandle) -> FFIResult {
+pub extern "C" fn dir_entry_path(handle: &FFIHandler) -> FFIResult {
     match DIR_ENTRY_CONTAINER.get(handle) {
         None => FFIResult::none(),
         Some(dir_entry) => {
@@ -73,7 +74,7 @@ pub extern "C" fn dir_entry_path(handle: &FFIHandle) -> FFIResult {
 }
 
 #[no_mangle]
-pub extern "C" fn dir_entry_metadata(handle: &FFIHandle) -> FFIResult {
+pub extern "C" fn dir_entry_metadata(handle: &FFIHandler) -> FFIResult {
     match DIR_ENTRY_CONTAINER.get(handle) {
         None => FFIResult::none(),
         Some(dir_entry) => match dir_entry.metadata() {
@@ -87,7 +88,7 @@ pub extern "C" fn dir_entry_metadata(handle: &FFIHandle) -> FFIResult {
 }
 
 #[no_mangle]
-pub extern "C" fn dir_entry_file_type(handle: &FFIHandle) -> FFIResult {
+pub extern "C" fn dir_entry_file_type(handle: &FFIHandler) -> FFIResult {
     match DIR_ENTRY_CONTAINER.get(handle) {
         None => FFIResult::none(),
         Some(dir_entry) => match dir_entry.file_type() {
@@ -98,7 +99,7 @@ pub extern "C" fn dir_entry_file_type(handle: &FFIHandle) -> FFIResult {
 }
 
 #[no_mangle]
-pub extern "C" fn dir_entry_file_name(handle: &FFIHandle) -> FFIResult {
+pub extern "C" fn dir_entry_file_name(handle: &FFIHandler) -> FFIResult {
     match DIR_ENTRY_CONTAINER.get(handle) {
         None => FFIResult::none(),
         Some(dir_entry) => {
@@ -119,11 +120,11 @@ pub extern "C" fn dir_entry_size() -> u64 {
 }
 
 #[no_mangle]
-pub extern "C" fn free_read_dir(handle: &FFIHandle) {
+pub extern "C" fn free_read_dir(handle: &FFIHandler) {
     READ_DIR_CONTAINER.free_handle(handle);
 }
 
 #[no_mangle]
-pub extern "C" fn free_dir_entry(handle: &FFIHandle) {
+pub extern "C" fn free_dir_entry(handle: &FFIHandler) {
     DIR_ENTRY_CONTAINER.free_handle(handle);
 }

@@ -1,19 +1,19 @@
-use crate::container::HandleContainer;
-use ffk::ffi_handle::FFIHandle;
+use crate::container::HandlerContainer;
+use ffk::ffi_handle::FFIHandler;
 use ffk::ffi_result::FFIResult;
 use ffk::ffi_value::{FFIValue, IntoFFIValue};
 use std::fs::Metadata;
 use std::sync::LazyLock;
 
-static METADATA_CONTAINER: LazyLock<HandleContainer<Metadata>> =
-    LazyLock::new(HandleContainer::new);
+static METADATA_CONTAINER: LazyLock<HandlerContainer<Metadata>> =
+    LazyLock::new(HandlerContainer::new);
 
-pub fn metadata_init(metadata: Metadata) -> FFIHandle {
-    METADATA_CONTAINER.create_handle(metadata, FFIHandle::metadata)
+pub fn metadata_init(metadata: Metadata) -> FFIHandler {
+    METADATA_CONTAINER.create_handler(metadata, FFIHandler::metadata)
 }
 
 #[no_mangle]
-pub extern "C" fn metadata_file_type(handle: &FFIHandle) -> FFIResult {
+pub extern "C" fn metadata_file_type(handle: &FFIHandler) -> FFIResult {
     match METADATA_CONTAINER.get(handle) {
         None => FFIResult::handle_error(),
         Some(metadata) => FFIResult::Ok(metadata.file_type().into_ffi_value()),
@@ -21,7 +21,7 @@ pub extern "C" fn metadata_file_type(handle: &FFIHandle) -> FFIResult {
 }
 
 #[no_mangle]
-pub extern "C" fn metadata_is_dir(handle: &FFIHandle) -> FFIResult {
+pub extern "C" fn metadata_is_dir(handle: &FFIHandler) -> FFIResult {
     match METADATA_CONTAINER.get(handle) {
         None => FFIResult::handle_error(),
         Some(metadata) => FFIResult::Ok(FFIValue::Boolean(metadata.is_dir())),
@@ -29,7 +29,7 @@ pub extern "C" fn metadata_is_dir(handle: &FFIHandle) -> FFIResult {
 }
 
 #[no_mangle]
-pub extern "C" fn metadata_is_file(handle: &FFIHandle) -> FFIResult {
+pub extern "C" fn metadata_is_file(handle: &FFIHandler) -> FFIResult {
     match METADATA_CONTAINER.get(handle) {
         None => FFIResult::handle_error(),
         Some(metadata) => FFIResult::Ok(FFIValue::Boolean(metadata.is_file())),
@@ -37,7 +37,7 @@ pub extern "C" fn metadata_is_file(handle: &FFIHandle) -> FFIResult {
 }
 
 #[no_mangle]
-pub extern "C" fn metadata_is_symlink(handle: &FFIHandle) -> FFIResult {
+pub extern "C" fn metadata_is_symlink(handle: &FFIHandler) -> FFIResult {
     match METADATA_CONTAINER.get(handle) {
         None => FFIResult::handle_error(),
         Some(metadata) => FFIResult::Ok(FFIValue::Boolean(metadata.is_symlink())),
@@ -45,7 +45,7 @@ pub extern "C" fn metadata_is_symlink(handle: &FFIHandle) -> FFIResult {
 }
 
 #[no_mangle]
-pub extern "C" fn metadata_len(handle: &FFIHandle) -> FFIResult {
+pub extern "C" fn metadata_len(handle: &FFIHandler) -> FFIResult {
     match METADATA_CONTAINER.get(handle) {
         None => FFIResult::handle_error(),
         Some(metadata) => FFIResult::Ok(FFIValue::UInt64(metadata.len())),
@@ -53,7 +53,7 @@ pub extern "C" fn metadata_len(handle: &FFIHandle) -> FFIResult {
 }
 
 #[no_mangle]
-pub extern "C" fn metadata_readonly(handle: &FFIHandle) -> FFIResult {
+pub extern "C" fn metadata_readonly(handle: &FFIHandler) -> FFIResult {
     match METADATA_CONTAINER.get(handle) {
         None => FFIResult::handle_error(),
         Some(metadata) => FFIResult::Ok(FFIValue::Boolean(metadata.permissions().readonly())),
@@ -61,7 +61,7 @@ pub extern "C" fn metadata_readonly(handle: &FFIHandle) -> FFIResult {
 }
 
 #[no_mangle]
-pub extern "C" fn metadata_set_readonly(handle: &FFIHandle, readonly: bool) -> FFIResult {
+pub extern "C" fn metadata_set_readonly(handle: &FFIHandler, readonly: bool) -> FFIResult {
     match METADATA_CONTAINER.get_mut(handle) {
         None => FFIResult::handle_error(),
         Some(metadata) => {
@@ -74,7 +74,7 @@ pub extern "C" fn metadata_set_readonly(handle: &FFIHandle, readonly: bool) -> F
 
 #[no_mangle]
 #[cfg(unix)]
-pub extern "C" fn metadata_mode(handle: &FFIHandle) -> FFIResult {
+pub extern "C" fn metadata_mode(handle: &FFIHandler) -> FFIResult {
     use std::os::unix::fs::PermissionsExt;
     match METADATA_CONTAINER.get(handle) {
         None => FFIResult::handle_error(),
@@ -84,7 +84,7 @@ pub extern "C" fn metadata_mode(handle: &FFIHandle) -> FFIResult {
 
 #[no_mangle]
 #[cfg(unix)]
-pub extern "C" fn metadata_set_mode(handle: &FFIHandle, mode: u32) -> FFIResult {
+pub extern "C" fn metadata_set_mode(handle: &FFIHandler, mode: u32) -> FFIResult {
     use std::os::unix::fs::PermissionsExt;
     match METADATA_CONTAINER.get_mut(handle) {
         None => FFIResult::handle_error(),
@@ -97,6 +97,6 @@ pub extern "C" fn metadata_set_mode(handle: &FFIHandle, mode: u32) -> FFIResult 
 }
 
 #[no_mangle]
-pub extern "C" fn free_metadata(handle: &FFIHandle) {
+pub extern "C" fn free_metadata(handle: &FFIHandler) {
     METADATA_CONTAINER.free_handle(handle);
 }

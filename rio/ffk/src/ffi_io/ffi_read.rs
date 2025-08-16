@@ -1,13 +1,20 @@
 use crate::ffi_result::FFIResult;
 use crate::ffi_value::ffi_bytes::FFIBytes;
 use crate::ffi_value::IntoFFIValue;
-use std::io::Read;
+use std::io::{ErrorKind, Read};
 
 pub fn read<R: Read>(reader: &mut R, buffer: &mut FFIBytes) -> FFIResult {
     let buf = unsafe { std::slice::from_raw_parts_mut(buffer.buffer, buffer.len) };
-    match reader.read(buf) {
-        Ok(size) => FFIResult::Ok(size.into()),
-        Err(error) => error.into(),
+    loop {
+        match reader.read(buf) {
+            Ok(0) => return FFIResult::Ok((-1).into_ffi_value()),
+            Ok(size) => return FFIResult::Ok(size.into_ffi_value()),
+            Err(error) => match error.kind() {
+                ErrorKind::WouldBlock => return FFIResult::Ok(0.into_ffi_value()),
+                ErrorKind::Interrupted => continue,
+                _ => return error.into(),
+            },
+        }
     }
 }
 
@@ -18,16 +25,6 @@ pub fn read_to_end<R: Read>(reader: &mut R) -> FFIResult {
             buf.truncate(size);
             FFIResult::Ok(buf.into_ffi_value())
         }
-        Err(error) => error.into(),
-    }
-}
-
-pub fn read_test<R>(reader: &mut R, buf: &mut Vec<u8>) -> FFIResult
-where
-    R: Read,
-{
-    match reader.read_to_end(buf) {
-        Ok(size) => FFIResult::Ok(size.into()),
         Err(error) => error.into(),
     }
 }

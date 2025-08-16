@@ -1,5 +1,6 @@
 package fs
 
+import exception.UnknownFileType
 import rio.FFIFileType
 
 actual enum class FileType {
@@ -25,6 +26,6 @@ fun FFIFileType.toFileType(): FileType {
         FFIFileType.IsFile -> FileType.File
         FFIFileType.IsSymlink -> FileType.Symlink
         FFIFileType.Other -> FileType.Other
-        else -> throw Exception("Unknown file type")
+        else -> throw UnknownFileType()
     }
 }

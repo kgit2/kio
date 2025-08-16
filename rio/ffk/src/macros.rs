@@ -30,5 +30,13 @@ macro_rules! ffi_value {
                 }
             }
         )*
+
+        $(
+            impl IntoFFIValue for $t {
+                fn into_ffi_value(self) -> FFIValue {
+                    FFIValue::$v(self)
+                }
+            }
+        )*
     };
 }

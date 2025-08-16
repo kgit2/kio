@@ -1,8 +1,8 @@
-use crate::container::HandleContainer;
+use crate::container::HandlerContainer;
 use crate::fs::metadata::metadata_init;
 use crate::fs::read_dir::read_dir_init;
 use ffk::ffi_convertor::FromFFI;
-use ffk::ffi_handle::FFIHandle;
+use ffk::ffi_handle::FFIHandler;
 use ffk::ffi_result::FFIResult;
 use ffk::ffi_value::ffi_string::FFIString;
 use ffk::ffi_value::{FFIValue, IntoFFIValue};
@@ -13,16 +13,21 @@ use std::ops::Deref;
 use std::path::PathBuf;
 use std::sync::LazyLock;
 
-static PATH_CONTAINER: LazyLock<HandleContainer<PathBuf>> = LazyLock::new(HandleContainer::new);
+static PATH_CONTAINER: LazyLock<HandlerContainer<PathBuf>> = LazyLock::new(HandlerContainer::new);
 
-pub fn path_create(path: PathBuf) -> FFIHandle {
-    PATH_CONTAINER.create_handle(path, FFIHandle::path)
+pub fn path_create(path: PathBuf) -> FFIHandler {
+    PATH_CONTAINER.create_handler(path, FFIHandler::path)
 }
 
 #[no_mangle]
 pub extern "C" fn path_init(buffer: &FFIString) -> FFIResult {
+    println!("path_init called with buffer: {}", buffer.as_origin());
     let path = PathBuf::from(buffer.as_origin());
-    let handle = PATH_CONTAINER.create_handle(path, FFIHandle::path);
+    let handle = PATH_CONTAINER.create_handler(path, FFIHandler::path);
+    println!("path_init handle: {handle:?}");
+    if let Some(ffi_ref) = PATH_CONTAINER.get(&handle) {
+        println!("path_init ffi_ref: {:?}", *ffi_ref);
+    }
     FFIResult::Ok(handle.into())
 }
 
@@ -30,7 +35,7 @@ pub extern "C" fn path_init(buffer: &FFIString) -> FFIResult {
 pub extern "C" fn path_cwd() -> FFIResult {
     match std::env::current_dir() {
         Ok(path) => {
-            let handle = PATH_CONTAINER.create_handle(path, FFIHandle::path);
+            let handle = PATH_CONTAINER.create_handler(path, FFIHandler::path);
             FFIResult::Ok(handle.into())
         }
         Err(e) => e.into(),
@@ -38,7 +43,7 @@ pub extern "C" fn path_cwd() -> FFIResult {
 }
 
 #[no_mangle]
-pub extern "C" fn path_push(handle: &FFIHandle, buffer: &FFIString) -> FFIResult {
+pub extern "C" fn path_push(handle: &FFIHandler, buffer: &FFIString) -> FFIResult {
     match PATH_CONTAINER.get_mut(handle) {
         None => FFIResult::handle_error(),
         Some(mut path) => {
@@ -49,7 +54,7 @@ pub extern "C" fn path_push(handle: &FFIHandle, buffer: &FFIString) -> FFIResult
 }
 
 #[no_mangle]
-pub extern "C" fn path_pop(handle: &FFIHandle) -> FFIResult {
+pub extern "C" fn path_pop(handle: &FFIHandler) -> FFIResult {
     match PATH_CONTAINER.get_mut(handle) {
         None => FFIResult::handle_error(),
         Some(mut path) => {
@@ -60,7 +65,7 @@ pub extern "C" fn path_pop(handle: &FFIHandle) -> FFIResult {
 }
 
 #[no_mangle]
-pub extern "C" fn path_set_file_name(handle: &FFIHandle, buffer: &FFIString) -> FFIResult {
+pub extern "C" fn path_set_file_name(handle: &FFIHandler, buffer: &FFIString) -> FFIResult {
     match PATH_CONTAINER.get_mut(handle) {
         None => FFIResult::handle_error(),
         Some(mut path) => {
@@ -71,7 +76,7 @@ pub extern "C" fn path_set_file_name(handle: &FFIHandle, buffer: &FFIString) -> 
 }
 
 #[no_mangle]
-pub extern "C" fn path_set_extension(handle: &FFIHandle, buffer: &FFIString) -> FFIResult {
+pub extern "C" fn path_set_extension(handle: &FFIHandler, buffer: &FFIString) -> FFIResult {
     match PATH_CONTAINER.get_mut(handle) {
         None => FFIResult::handle_error(),
         Some(mut path) => {
@@ -82,7 +87,7 @@ pub extern "C" fn path_set_extension(handle: &FFIHandle, buffer: &FFIString) -> 
 }
 
 #[no_mangle]
-pub extern "C" fn path_clear(handle: &FFIHandle) -> FFIResult {
+pub extern "C" fn path_clear(handle: &FFIHandler) -> FFIResult {
     match PATH_CONTAINER.get_mut(handle) {
         None => FFIResult::handle_error(),
         Some(mut path) => {
@@ -93,19 +98,19 @@ pub extern "C" fn path_clear(handle: &FFIHandle) -> FFIResult {
 }
 
 #[no_mangle]
-pub extern "C" fn path_clone(handle: &FFIHandle) -> FFIResult {
+pub extern "C" fn path_clone(handle: &FFIHandler) -> FFIResult {
     match PATH_CONTAINER.get(handle) {
         None => FFIResult::handle_error(),
         Some(path) => {
             let clone = path.clone();
-            let handle = PATH_CONTAINER.create_handle(clone, FFIHandle::path);
+            let handle = PATH_CONTAINER.create_handler(clone, FFIHandler::path);
             FFIResult::Ok(handle.into())
         }
     }
 }
 
 #[no_mangle]
-pub extern "C" fn path_eq(handle: &FFIHandle, other: &FFIHandle) -> FFIResult {
+pub extern "C" fn path_eq(handle: &FFIHandler, other: &FFIHandler) -> FFIResult {
     match (PATH_CONTAINER.get(handle), PATH_CONTAINER.get(other)) {
         (Some(path), Some(other)) => {
             FFIResult::Ok(FFIValue::Boolean(path.deref() == other.deref()))
@@ -115,7 +120,7 @@ pub extern "C" fn path_eq(handle: &FFIHandle, other: &FFIHandle) -> FFIResult {
 }
 
 #[no_mangle]
-pub extern "C" fn path_hash(handle: &FFIHandle) -> FFIResult {
+pub extern "C" fn path_hash(handle: &FFIHandler) -> FFIResult {
     match PATH_CONTAINER.get(handle) {
         Some(path) => {
             let mut hasher = DefaultHasher::default();
@@ -127,7 +132,7 @@ pub extern "C" fn path_hash(handle: &FFIHandle) -> FFIResult {
 }
 
 #[no_mangle]
-pub extern "C" fn path_compare(handle: &FFIHandle, other: &FFIHandle) -> FFIResult {
+pub extern "C" fn path_compare(handle: &FFIHandler, other: &FFIHandler) -> FFIResult {
     match (PATH_CONTAINER.get(handle), PATH_CONTAINER.get(other)) {
         (Some(path), Some(other)) => match path.cmp(other.deref()) {
             Ordering::Less => FFIResult::Ok(FFIValue::Int32(-1)),
@@ -139,7 +144,10 @@ pub extern "C" fn path_compare(handle: &FFIHandle, other: &FFIHandle) -> FFIResu
 }
 
 #[no_mangle]
-pub extern "C" fn path_to_string(handle: &FFIHandle) -> FFIResult {
+pub extern "C" fn path_to_string(handle: &FFIHandler) -> FFIResult {
+    if let Some(path) = PATH_CONTAINER.get(handle) {
+        println!("path_to_string called with path: {:?}", *path);
+    }
     match PATH_CONTAINER.get(handle) {
         Some(path) => match path.to_str() {
             Some(s) => FFIResult::Ok(s.to_string().into_ffi_value()),
@@ -150,7 +158,7 @@ pub extern "C" fn path_to_string(handle: &FFIHandle) -> FFIResult {
 }
 
 #[no_mangle]
-pub extern "C" fn path_to_string_lossy(handle: &FFIHandle) -> FFIResult {
+pub extern "C" fn path_to_string_lossy(handle: &FFIHandler) -> FFIResult {
     match PATH_CONTAINER.get(handle) {
         Some(path) => FFIResult::Ok(path.to_string_lossy().to_string().into_ffi_value()),
         None => FFIResult::handle_error(),
@@ -158,7 +166,7 @@ pub extern "C" fn path_to_string_lossy(handle: &FFIHandle) -> FFIResult {
 }
 
 #[no_mangle]
-pub extern "C" fn path_file_name(handle: &FFIHandle) -> FFIResult {
+pub extern "C" fn path_file_name(handle: &FFIHandler) -> FFIResult {
     match PATH_CONTAINER.get(handle) {
         Some(path) => match path.file_name() {
             Some(os_str) => {
@@ -172,7 +180,7 @@ pub extern "C" fn path_file_name(handle: &FFIHandle) -> FFIResult {
 }
 
 #[no_mangle]
-pub extern "C" fn path_extension(handle: &FFIHandle) -> FFIResult {
+pub extern "C" fn path_extension(handle: &FFIHandler) -> FFIResult {
     match PATH_CONTAINER.get(handle) {
         Some(path) => match path.extension() {
             Some(os_str) => {
@@ -186,11 +194,19 @@ pub extern "C" fn path_extension(handle: &FFIHandle) -> FFIResult {
 }
 
 #[no_mangle]
-pub extern "C" fn path_parent(handle: &FFIHandle) -> FFIResult {
+pub extern "C" fn path_parent(handle: &FFIHandler) -> FFIResult {
+    println!("path_parent called with handle: {:?}", handle);
+    PATH_CONTAINER.as_ref().iter().for_each(|ref_mut| {
+        println!("PATH_CONTAINER: ref_mut: {:?}", *ref_mut);
+    });
     match PATH_CONTAINER.get(handle) {
         Some(path) => match path.parent() {
             Some(parent) => {
-                let handle = PATH_CONTAINER.create_handle(parent.to_path_buf(), FFIHandle::path);
+                let handle = PATH_CONTAINER.create_handler(parent.to_path_buf(), FFIHandler::path);
+                println!("path_parent created handle: {:?}", handle);
+                PATH_CONTAINER.as_ref().iter().for_each(|ref_mut| {
+                    println!("PATH_CONTAINER: ref_mut: {:?}", *ref_mut);
+                });
                 FFIResult::Ok(handle.into())
             }
             None => FFIResult::Ok(FFIValue::Unit),
@@ -200,7 +216,7 @@ pub extern "C" fn path_parent(handle: &FFIHandle) -> FFIResult {
 }
 
 #[no_mangle]
-pub extern "C" fn path_exists(handle: &FFIHandle) -> FFIResult {
+pub extern "C" fn path_exists(handle: &FFIHandler) -> FFIResult {
     match PATH_CONTAINER.get(handle) {
         Some(path) => FFIResult::Ok(FFIValue::Boolean(path.exists())),
         None => FFIResult::handle_error(),
@@ -208,7 +224,7 @@ pub extern "C" fn path_exists(handle: &FFIHandle) -> FFIResult {
 }
 
 #[no_mangle]
-pub extern "C" fn path_is_file(handle: &FFIHandle) -> FFIResult {
+pub extern "C" fn path_is_file(handle: &FFIHandler) -> FFIResult {
     match PATH_CONTAINER.get(handle) {
         Some(path) => FFIResult::Ok(FFIValue::Boolean(path.is_file())),
         None => FFIResult::handle_error(),
@@ -216,7 +232,7 @@ pub extern "C" fn path_is_file(handle: &FFIHandle) -> FFIResult {
 }
 
 #[no_mangle]
-pub extern "C" fn path_is_dir(handle: &FFIHandle) -> FFIResult {
+pub extern "C" fn path_is_dir(handle: &FFIHandler) -> FFIResult {
     match PATH_CONTAINER.get(handle) {
         Some(path) => FFIResult::Ok(FFIValue::Boolean(path.is_dir())),
         None => FFIResult::handle_error(),
@@ -224,7 +240,7 @@ pub extern "C" fn path_is_dir(handle: &FFIHandle) -> FFIResult {
 }
 
 #[no_mangle]
-pub extern "C" fn path_is_absolute(handle: &FFIHandle) -> FFIResult {
+pub extern "C" fn path_is_absolute(handle: &FFIHandler) -> FFIResult {
     match PATH_CONTAINER.get(handle) {
         Some(path) => FFIResult::Ok(FFIValue::Boolean(path.is_absolute())),
         None => FFIResult::handle_error(),
@@ -232,7 +248,7 @@ pub extern "C" fn path_is_absolute(handle: &FFIHandle) -> FFIResult {
 }
 
 #[no_mangle]
-pub extern "C" fn path_is_relative(handle: &FFIHandle) -> FFIResult {
+pub extern "C" fn path_is_relative(handle: &FFIHandler) -> FFIResult {
     match PATH_CONTAINER.get(handle) {
         Some(path) => FFIResult::Ok(FFIValue::Boolean(path.is_relative())),
         None => FFIResult::handle_error(),
@@ -240,11 +256,11 @@ pub extern "C" fn path_is_relative(handle: &FFIHandle) -> FFIResult {
 }
 
 #[no_mangle]
-pub extern "C" fn path_normalize(handle: &FFIHandle) -> FFIResult {
+pub extern "C" fn path_normalize(handle: &FFIHandler) -> FFIResult {
     match PATH_CONTAINER.get(handle) {
         Some(path) => {
             let normalized = path.clean();
-            let handle = PATH_CONTAINER.create_handle(normalized, FFIHandle::path);
+            let handle = PATH_CONTAINER.create_handler(normalized, FFIHandler::path);
             FFIResult::Ok(handle.into())
         }
         None => FFIResult::handle_error(),
@@ -252,11 +268,11 @@ pub extern "C" fn path_normalize(handle: &FFIHandle) -> FFIResult {
 }
 
 #[no_mangle]
-pub extern "C" fn path_canonicalize(handle: &FFIHandle) -> FFIResult {
+pub extern "C" fn path_canonicalize(handle: &FFIHandler) -> FFIResult {
     match PATH_CONTAINER.get(handle) {
         Some(path) => match path.canonicalize() {
             Ok(canonicalized) => {
-                let handle = PATH_CONTAINER.create_handle(canonicalized, FFIHandle::path);
+                let handle = PATH_CONTAINER.create_handler(canonicalized, FFIHandler::path);
                 FFIResult::Ok(handle.into())
             }
             Err(e) => e.into(),
@@ -266,7 +282,7 @@ pub extern "C" fn path_canonicalize(handle: &FFIHandle) -> FFIResult {
 }
 
 #[no_mangle]
-pub extern "C" fn path_metadata(handle: &FFIHandle) -> FFIResult {
+pub extern "C" fn path_metadata(handle: &FFIHandler) -> FFIResult {
     match PATH_CONTAINER.get(handle) {
         Some(path) => match path.metadata() {
             Ok(metadata) => {
@@ -280,7 +296,7 @@ pub extern "C" fn path_metadata(handle: &FFIHandle) -> FFIResult {
 }
 
 #[no_mangle]
-pub extern "C" fn path_read_dir(handle: &FFIHandle) -> FFIResult {
+pub extern "C" fn path_read_dir(handle: &FFIHandler) -> FFIResult {
     match PATH_CONTAINER.get(handle) {
         Some(path) => match path.read_dir() {
             Ok(dir) => {
@@ -294,7 +310,7 @@ pub extern "C" fn path_read_dir(handle: &FFIHandle) -> FFIResult {
 }
 
 #[no_mangle]
-pub extern "C" fn path_components(handle: &FFIHandle) -> FFIResult {
+pub extern "C" fn path_components(handle: &FFIHandler) -> FFIResult {
     match PATH_CONTAINER.get(handle) {
         Some(path) => {
             let components = path
@@ -308,6 +324,6 @@ pub extern "C" fn path_components(handle: &FFIHandle) -> FFIResult {
 }
 
 #[no_mangle]
-pub extern "C" fn free_path(handle: &FFIHandle) {
+pub extern "C" fn free_path(handle: &FFIHandler) {
     PATH_CONTAINER.free_handle(handle);
 }

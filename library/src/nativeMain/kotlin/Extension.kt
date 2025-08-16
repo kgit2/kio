@@ -1,3 +1,4 @@
+import io.buffered.SlicedByteArray
 import kotlinx.cinterop.*
 import rio.*
 
@@ -34,7 +35,7 @@ fun FFIVec.toStringMutableList(): MutableList<String> {
     return list
 }
 
-fun FFIHandle.toCValue(): CValue<FFIHandle> {
+fun FFIHandler.toCValue(): CValue<FFIHandler> {
     return cValue {
         this.index = this@toCValue.index
         this.handle_type = this@toCValue.handle_type
@@ -51,6 +52,14 @@ fun String.toFFIString(scope: MemScope): CValue<FFIString> {
 fun ByteArray.toFFIBytes(scope: MemScope): CValue<FFIBytes> {
     return cValue<FFIBytes> {
         buffer = asUByteArray().refTo(0).getPointer(scope)
+        len = size.convert()
+        capacity = size.convert()
+    }
+}
+
+fun SlicedByteArray.toFFIBytes(scope: MemScope): CValue<FFIBytes> {
+    return cValue<FFIBytes> {
+        buffer = asUByteArray().refTo(this@toFFIBytes.offset).getPointer(scope)
         len = size.convert()
         capacity = size.convert()
     }

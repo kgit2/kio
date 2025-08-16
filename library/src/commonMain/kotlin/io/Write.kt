@@ -1,7 +1,9 @@
 package io
 
+import io.buffered.SlicedByteArray
+
 interface Write {
-    fun write(buf: ByteArray, offset: Int, len: Int): Result<Int>
-    fun writeAll(buf: ByteArray, offset: Int): Result<Unit>
-    fun flush(): Result<Unit>
+    fun write(buf: SlicedByteArray, offset: Int, len: Int): Int
+    fun writeAll(buf: SlicedByteArray, offset: Int)
+    fun flush()
 }

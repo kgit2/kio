@@ -1,6 +1,9 @@
 package io
 
+import exception.BufferSizeException
+import exception.UnknownFFIError
 import handleError
+import io.buffered.SlicedByteArray
 import kotlinx.cinterop.*
 import rio.*
 import toCValue
@@ -8,12 +11,12 @@ import toFFIBytes
 import kotlin.native.ref.createCleaner
 
 actual object Stderr : Write {
-    private val internal: Lazy<CValue<FFIHandle>> = lazy {
+    private val internal: Lazy<CValue<FFIHandler>> = lazy {
         stderr_init().useContents {
             when (tag) {
                 rio.FFIResult_Tag.Ok -> ok.handle.toCValue()
-                rio.FFIResult_Tag.Err -> throw handleError(err.string)
-                else -> throw Exception("Unknown error")
+                rio.FFIResult_Tag.Err -> throw handleError(err)
+                else -> throw UnknownFFIError()
             }
         }
     }
@@ -26,50 +29,44 @@ actual object Stderr : Write {
         }
     }
 
-    override fun write(buf: ByteArray, offset: Int, len: Int): Result<Int> = memScoped {
-        if (buf.isEmpty()) {
-            Result.success(0)
-        }
+    override fun write(buf: SlicedByteArray, offset: Int, len: Int): Int = memScoped {
+        if (buf.isEmpty()) return@memScoped 0
 
-        if (buf.size < len) {
-            return Result.failure(Exception("buf size is less than len"))
-        }
+        if (buf.size < len) throw BufferSizeException()
 
         stderr_write(
             Stdout.internal.value.ptr,
-            buf.sliceArray(IntRange(offset, len)).toFFIBytes(this)
+            buf.slice(offset, len).toFFIBytes(this)
         ).useContents {
             when (tag) {
-                rio.FFIResult_Tag.Ok -> Result.success(ok.u_int64.convert())
-                rio.FFIResult_Tag.Err -> Result.failure(handleError(err.string))
-                else -> Result.failure(Exception("Unknown error"))
+                rio.FFIResult_Tag.Ok -> return ok.u_int64.convert()
+                rio.FFIResult_Tag.Err -> throw handleError(err)
+                else -> throw UnknownFFIError()
             }
         }
     }
 
-    override fun writeAll(buf: ByteArray, offset: Int): Result<Unit> = memScoped {
-        if (buf.isEmpty()) {
-            return Result.success(Unit)
-        }
+    override fun writeAll(buf: SlicedByteArray, offset: Int) = memScoped {
+        if (buf.isEmpty()) return@memScoped
 
         stderr_write_all(
             Stdout.internal.value.ptr,
-            buf.sliceArray(offset ..< buf.size).toFFIBytes(this)
+            buf.slice(offset, buf.size).toFFIBytes(this)
         ).useContents {
             when (tag) {
-                rio.FFIResult_Tag.Ok -> Result.success(Unit)
-                rio.FFIResult_Tag.Err -> Result.failure(handleError(err.string))
-                else -> Result.failure(Exception("Unknown error"))
+                rio.FFIResult_Tag.Ok -> return@memScoped
+                rio.FFIResult_Tag.Err -> throw handleError(err)
+                else -> throw UnknownFFIError()
             }
         }
     }
 
-    override fun flush(): Result<Unit> = memScoped {
-        return stderr_flush(internal.value.ptr).useContents {
+    override fun flush() = memScoped {
+        stderr_flush(internal.value.ptr).useContents {
             when (tag) {
-                rio.FFIResult_Tag.Ok -> Result.success(Unit)
-                rio.FFIResult_Tag.Err -> Result.failure(handleError(err.string))
-                else -> Result.failure(Exception("Unknown error"))
+                rio.FFIResult_Tag.Ok -> return@memScoped
+                rio.FFIResult_Tag.Err -> throw handleError(err)
+                else -> throw UnknownFFIError()
             }
         }
     }

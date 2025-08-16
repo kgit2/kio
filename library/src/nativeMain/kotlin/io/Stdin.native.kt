@@ -1,9 +1,14 @@
 package io
 
+import exception.BufferSizeException
+import exception.EmptyBufferException
+import exception.UnknownFFIError
 import handleError
+import io.buffered.SlicedByteArray
 import kotlinx.cinterop.*
 import rio.*
-import rio.FFIResult_Tag.*
+import rio.FFIResult_Tag.Err
+import rio.FFIResult_Tag.Ok
 import kotlin.native.ref.createCleaner
 
 actual object Stdin : Read {
@@ -14,8 +19,8 @@ actual object Stdin : Read {
                     this.index = ok.handle.index
                     this.handle_type = ok.handle.handle_type
                 }
-                Err -> throw handleError(err.string)
-                else -> throw Exception("Unknown error")
+                Err -> throw handleError(err)
+                else -> throw UnknownFFIError()
             }
         }
     }
@@ -28,13 +33,13 @@ actual object Stdin : Read {
         }
     }
 
-    override fun read(buf: ByteArray, offset: Int, len: Int): Result<Int> = memScoped {
+    override fun read(buf: SlicedByteArray, offset: Int, len: Int): Int = memScoped {
         if (buf.isEmpty()) {
-            return Result.failure(Exception("buf is empty"))
+            throw EmptyBufferException()
         }
 
         if (buf.size < len) {
-            return Result.failure(Exception("buf size is less than len"))
+            throw BufferSizeException()
         }
 
         // 获取 ByteArray 指针
@@ -48,14 +53,14 @@ actual object Stdin : Read {
         val result: CValue<FFIResult> = stdin_read(internal.value.ptr, buffer)
         result.useContents {
             when (tag) {
-                Ok -> Result.success(ok.u_size.convert())
-                Err -> Result.failure(handleError(err.string))
-                else -> Result.failure(Exception("Unknown error"))
+                Ok -> ok.u_size.convert()
+                Err -> throw handleError(err)
+                else -> throw UnknownFFIError()
             }
         }
     }
 
-    override fun readToEnd(buf: MutableList<UByte>, offset: Int): Result<Int> = memScoped {
+    override fun readToEnd(buf: MutableList<UByte>, offset: Int): Int = memScoped {
         val result = stdin_read_to_end(internal.value.ptr)
         return result.useContents {
             when (tag) {
@@ -72,12 +77,12 @@ actual object Stdin : Read {
                     }
                     free_ffi_bytes(bytes)
 
-                    Result.success(size)
+                    size
                 }
 
-                Err -> Result.failure(handleError(err.string))
+                Err -> throw handleError(err)
 
-                else -> Result.failure(Exception("Unknown error"))
+                else -> throw UnknownFFIError()
             }
         }
     }

@@ -143,4 +143,76 @@ class PathTest {
         val path = Path("a/b/c")
         assertEquals(listOf("a", "b", "c"), path.components())
     }
+    @Test
+    fun testNormalizeMultipleSlashesAndDots() {
+        val path = Path("a//./b///c/.")
+        assertEquals("a/b/c", path.normalize().toString())
+    }
+
+    @Test
+    fun testNormalizeBeyondRootAbsolute() {
+        val path = Path("/../../a")
+        assertEquals("/a", path.normalize().toString())
+    }
+
+    @Test
+    fun testNormalizeLeadingDotDotRelative() {
+        val path = Path("../a/b/..")
+        // Leading ".." in a relative path should be preserved
+        assertEquals("../a", path.normalize().toString())
+    }
+
+    @Test
+    fun testNormalizeIdempotent() {
+        val p1 = Path("a/./b/../c/./d").normalize()
+        val p2 = p1.normalize()
+        assertEquals(p1.toString(), p2.toString())
+    }
+
+    @Test
+    fun testParentOfRootStable() {
+        val root = Path("/")
+        assertEquals("/", root.parent().toString())
+    }
+
+    @Test
+    fun testTrailingSlashHandling() {
+        val p = Path("a/b/")
+        assertEquals("a/b", p.normalize().toString())
+        // fileName after normalization should be the last component
+        assertEquals("b", p.normalize().fileName())
+    }
+
+    @Test
+    fun testExtensionMultipleDots() {
+        val p = Path("archive.tar.gz")
+        assertEquals("gz", p.extension())
+    }
+
+    @Test
+    fun testPushPopWithNormalize() {
+        val p = Path("/")
+        p.push("a")
+        p.push("..")
+        assertEquals("/", p.normalize().toString())
+    }
+
+    @Test
+    fun testComponentsAfterNormalizeCollapses() {
+        val p = Path("a//b///c/").normalize()
+        assertEquals(listOf("a", "b", "c"), p.components())
+    }
+
+    @Test
+    fun testNormalizeRootDot() {
+        val p = Path("/./")
+        assertEquals("/", p.normalize().toString())
+    }
+
+    @Test
+    fun testNormalizeExcessParentInRelative() {
+        val p = Path("a/b/../../../c")
+        // One more ".." than segments should survive for relative paths
+        assertEquals("../c", p.normalize().toString())
+    }
 }
