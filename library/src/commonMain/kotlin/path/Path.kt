@@ -12,7 +12,7 @@ expect class Path(value: String) {
     fun pop(): Boolean
     fun fileName(): String
     fun extension(): String
-    fun parent(): Path
+    fun parent(): Path?
     fun setFileName(name: String)
     fun setExtension(extension: String)
 

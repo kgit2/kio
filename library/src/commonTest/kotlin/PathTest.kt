@@ -2,6 +2,7 @@ import path.Path
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
+import kotlin.test.assertNull
 import kotlin.test.assertTrue
 
 class PathTest {
@@ -172,7 +173,7 @@ class PathTest {
     @Test
     fun testParentOfRootStable() {
         val root = Path("/")
-        assertEquals("/", root.parent().toString())
+        assertNull(root.parent())
     }
 
     @Test

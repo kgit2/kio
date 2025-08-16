@@ -15,7 +15,7 @@ import toKString
 import toStringList
 
 actual class Path(
-    val internal: CValue<FFIHandle>,
+    val internal: CValue<FFIHandler>,
 ) : Comparable<Path> {
 
     actual constructor(value: String) : this(memScoped {
@@ -78,10 +78,15 @@ actual class Path(
         }
     }
 
-    actual fun parent(): Path = memScoped {
+    actual fun parent(): Path? = memScoped {
         return path_parent(internal.ptr).useContents {
             when (tag) {
-                FFIResult_Tag.Ok -> Path(ok.handle.toCValue())
+                FFIResult_Tag.Ok -> when (ok.tag) {
+                    FFIValue_Tag.Handle -> Path(ok.handle.toCValue())
+                    FFIValue_Tag.Unit -> null
+                    else -> throw UnknownFFIError()
+                }
+
                 FFIResult_Tag.None -> throw NullPointerException()
                 FFIResult_Tag.Err -> throw handleError(err)
                 else -> throw UnknownFFIError()

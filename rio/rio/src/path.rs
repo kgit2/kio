@@ -11,6 +11,7 @@ use std::cmp::Ordering;
 use std::hash::{DefaultHasher, Hash, Hasher};
 use std::ops::Deref;
 use std::path::PathBuf;
+use std::ptr;
 use std::sync::LazyLock;
 
 static PATH_CONTAINER: LazyLock<HandlerContainer<PathBuf>> = LazyLock::new(HandlerContainer::new);
@@ -21,13 +22,8 @@ pub fn path_create(path: PathBuf) -> FFIHandler {
 
 #[no_mangle]
 pub extern "C" fn path_init(buffer: &FFIString) -> FFIResult {
-    println!("path_init called with buffer: {}", buffer.as_origin());
     let path = PathBuf::from(buffer.as_origin());
     let handle = PATH_CONTAINER.create_handler(path, FFIHandler::path);
-    println!("path_init handle: {handle:?}");
-    if let Some(ffi_ref) = PATH_CONTAINER.get(&handle) {
-        println!("path_init ffi_ref: {:?}", *ffi_ref);
-    }
     FFIResult::Ok(handle.into())
 }
 
@@ -145,9 +141,6 @@ pub extern "C" fn path_compare(handle: &FFIHandler, other: &FFIHandler) -> FFIRe
 
 #[no_mangle]
 pub extern "C" fn path_to_string(handle: &FFIHandler) -> FFIResult {
-    if let Some(path) = PATH_CONTAINER.get(handle) {
-        println!("path_to_string called with path: {:?}", *path);
-    }
     match PATH_CONTAINER.get(handle) {
         Some(path) => match path.to_str() {
             Some(s) => FFIResult::Ok(s.to_string().into_ffi_value()),
@@ -195,18 +188,10 @@ pub extern "C" fn path_extension(handle: &FFIHandler) -> FFIResult {
 
 #[no_mangle]
 pub extern "C" fn path_parent(handle: &FFIHandler) -> FFIResult {
-    println!("path_parent called with handle: {:?}", handle);
-    PATH_CONTAINER.as_ref().iter().for_each(|ref_mut| {
-        println!("PATH_CONTAINER: ref_mut: {:?}", *ref_mut);
-    });
     match PATH_CONTAINER.get(handle) {
         Some(path) => match path.parent() {
             Some(parent) => {
                 let handle = PATH_CONTAINER.create_handler(parent.to_path_buf(), FFIHandler::path);
-                println!("path_parent created handle: {:?}", handle);
-                PATH_CONTAINER.as_ref().iter().for_each(|ref_mut| {
-                    println!("PATH_CONTAINER: ref_mut: {:?}", *ref_mut);
-                });
                 FFIResult::Ok(handle.into())
             }
             None => FFIResult::Ok(FFIValue::Unit),

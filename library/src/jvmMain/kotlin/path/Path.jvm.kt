@@ -35,7 +35,7 @@ actual class Path actual constructor(value: String) : Comparable<Path> {
         TODO("Not yet implemented")
     }
 
-    actual fun parent(): Path {
+    actual fun parent(): Path? {
         TODO("Not yet implemented")
     }
 

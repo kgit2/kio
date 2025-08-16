@@ -12,10 +12,10 @@ import rio.FFIResult_Tag.Ok
 import kotlin.native.ref.createCleaner
 
 actual object Stdin : Read {
-    private var internal: Lazy<CValue<FFIHandle>> = lazy {
+    private var internal: Lazy<CValue<FFIHandler>> = lazy {
         stdin_init().useContents {
             when (tag) {
-                Ok -> cValue<FFIHandle> {
+                Ok -> cValue<FFIHandler> {
                     this.index = ok.handle.index
                     this.handle_type = ok.handle.handle_type
                 }

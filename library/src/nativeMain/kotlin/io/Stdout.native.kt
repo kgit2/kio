@@ -11,7 +11,7 @@ import toFFIBytes
 import kotlin.native.ref.createCleaner
 
 actual object Stdout : Write {
-    val internal: Lazy<CValue<FFIHandle>> = lazy {
+    val internal: Lazy<CValue<FFIHandler>> = lazy {
         stdout_init().useContents {
             when (tag) {
                 rio.FFIResult_Tag.Ok -> ok.handle.toCValue()
