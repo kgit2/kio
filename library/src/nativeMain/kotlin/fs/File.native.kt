@@ -10,7 +10,7 @@ actual class File actual constructor(path: Path) : Read, Write {
         TODO("Not yet implemented")
     }
 
-    override fun readToEnd(buf: MutableList<UByte>, offset: Int): Int {
+    override fun readToEnd(buf: MutableList<Byte>, offset: Int): Int {
         TODO("Not yet implemented")
     }
 

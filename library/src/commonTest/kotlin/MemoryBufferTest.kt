@@ -40,11 +40,11 @@ class MemoryBufferTest {
         val input = "EndTest".encodeToSlicedByteArray()
         buffer.write(input, 0, input.size)
 
-        val list = mutableListOf<UByte>()
+        val list = mutableListOf<Byte>()
         val result = buffer.readToEnd(list, 0)
         assertEquals(input.size, result)
 
-        val expected = "EndTest".encodeToByteArray().map { it.toUByte() }
+        val expected = "EndTest".encodeToByteArray().toList()
         assertContentEquals(expected, list)
     }
 
@@ -163,7 +163,7 @@ class MemoryBufferTest {
     fun `test readToEnd`() {
         val memBuffer = MemoryBuffer()
         val data = SlicedByteArray.wrap("Hello, World!".encodeToByteArray())
-        val output = mutableListOf<UByte>()
+        val output = mutableListOf<Byte>()
 
         // Write data
         assertEquals(data.size, memBuffer.write(data, 0, data.size))
@@ -171,7 +171,7 @@ class MemoryBufferTest {
         // Read all remaining data
         val totalRead = memBuffer.readToEnd(output, 0)
         assertEquals(data.size, totalRead)
-        assertEquals("Hello, World!".encodeToByteArray().toList(), output.map { it.toByte() })
+        assertEquals("Hello, World!".encodeToByteArray().toList(), output)
     }
 
     @Test

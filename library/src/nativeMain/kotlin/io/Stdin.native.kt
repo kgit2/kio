@@ -60,7 +60,7 @@ actual object Stdin : Read {
         }
     }
 
-    override fun readToEnd(buf: MutableList<UByte>, offset: Int): Int = memScoped {
+    override fun readToEnd(buf: MutableList<Byte>, offset: Int): Int = memScoped {
         val result = stdin_read_to_end(internal.value.ptr)
         return result.useContents {
             when (tag) {
@@ -68,7 +68,7 @@ actual object Stdin : Read {
                     val size: Int = ok.bytes.len.convert()
                     val data = ok.bytes.buffer
                     buf.addAll(offset, List(size) {
-                        data?.get(it)?.toUByte()
+                        data?.get(it)?.toByte()
                     }.filterNotNull())
                     val bytes = cValue<FFIBytes> {
                         buffer = ok.bytes.buffer

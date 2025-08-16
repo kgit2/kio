@@ -30,12 +30,12 @@ class MemoryBuffer : Read, Write {
         }
     }
 
-    override fun readToEnd(buf: MutableList<UByte>, offset: Int): Int {
+    override fun readToEnd(buf: MutableList<Byte>, offset: Int): Int {
         require(offset >= 0 && offset <= buf.size) { "Invalid offset: $offset, buf.size=${buf.size}" }
         val available = size - readPos
         if (available <= 0) return -1
 
-        buf.addAll(offset, List(available) { buffer[readPos + it].toUByte() })
+        buf.addAll(offset, List(available) { buffer[readPos + it] })
         readPos = size
         return available
     }
